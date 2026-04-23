@@ -1,0 +1,1585 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Ricette Salutari — Edizione Campana</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;1,400&family=Crimson+Pro:ital,wght@0,300;0,400;1,300&display=swap" rel="stylesheet">
+<style>
+/* ─── TOKENS ──────────────────────────────────────── */
+*,*::before,*::after{margin:0;padding:0;box-sizing:border-box}
+:root{
+  --cream:#f5f0e8;--sand:#e8dcc8;--terracotta:#c4673a;--olive:#6b7c4a;
+  --deep:#2a1f14;--gold:#c9a84c;--sea:#3a6b7c;--navy:#1B4F72;
+  --mint:#EAFAF1;--peach:#FDEBD0;--sky:#EBF5FB;--sky2:#D6EAF8;
+  --motiv:#1D6A39;--aller:#784212;--purple:#6C3483;--purple-bg:#F5EEF8;
+}
+html{scroll-behavior:smooth}
+body{background:var(--cream);font-family:'Crimson Pro',serif;color:var(--deep);min-height:100vh;
+  background-image:radial-gradient(ellipse at 10% 20%,rgba(196,103,58,.07) 0%,transparent 50%),
+                   radial-gradient(ellipse at 90% 80%,rgba(58,107,124,.07) 0%,transparent 50%)}
+
+/* ─── EDITOR SIDEBAR ──────────────────────────────── */
+#editor-sidebar{
+  position:fixed;top:0;right:0;width:480px;height:100vh;
+  background:#1a1a2e;color:#e8e8f0;z-index:2000;
+  display:flex;flex-direction:column;
+  transform:translateX(100%);transition:transform .35s cubic-bezier(.4,0,.2,1);
+  box-shadow:-8px 0 40px rgba(0,0,0,.4);
+}
+#editor-sidebar.open{transform:translateX(0)}
+.editor-top{
+  background:#16213e;padding:1rem 1.2rem;display:flex;align-items:center;
+  gap:.8rem;border-bottom:1px solid #2d2d50;flex-shrink:0;
+}
+.editor-top h2{font-family:'Playfair Display',serif;font-size:1.1rem;font-weight:400;flex:1;color:#c9b9e8}
+.editor-close{background:none;border:none;color:#999;font-size:1.4rem;cursor:pointer;line-height:1;padding:.2rem}
+.editor-close:hover{color:#fff}
+.editor-recipe-select{
+  padding:.5rem .8rem .5rem 1.2rem;background:#16213e;border-bottom:1px solid #2d2d50;flex-shrink:0;
+}
+.editor-recipe-select select{
+  width:100%;background:#0f3460;color:#e8e8f0;border:1px solid #2d5f8f;
+  border-radius:3px;padding:.5rem .8rem;font-family:'Crimson Pro',serif;font-size:.95rem;cursor:pointer;
+}
+.editor-body{flex:1;overflow-y:auto;padding:1.2rem}
+.editor-body::-webkit-scrollbar{width:5px}
+.editor-body::-webkit-scrollbar-track{background:#16213e}
+.editor-body::-webkit-scrollbar-thumb{background:#2d5f8f;border-radius:3px}
+.field-group{margin-bottom:1.1rem}
+.field-group label{
+  display:block;font-size:.7rem;letter-spacing:.12em;text-transform:uppercase;
+  color:#8899cc;margin-bottom:.35rem;
+}
+.field-group input,.field-group textarea,.field-group select{
+  width:100%;background:#0d1b2a;color:#e8e8f0;border:1px solid #2d3a5a;
+  border-radius:3px;padding:.55rem .75rem;font-family:'Crimson Pro',serif;
+  font-size:.92rem;line-height:1.5;resize:vertical;transition:border-color .2s;
+}
+.field-group input:focus,.field-group textarea:focus,.field-group select:focus{
+  outline:none;border-color:#5b8ee6;background:#0f2340;
+}
+.field-group textarea{min-height:80px}
+.field-group textarea.tall{min-height:120px}
+.field-sep{height:1px;background:#2d2d50;margin:1.2rem 0}
+.field-section-title{
+  font-size:.68rem;letter-spacing:.16em;text-transform:uppercase;
+  color:#6c9fff;margin-bottom:.8rem;padding:.3rem 0;
+  border-bottom:1px solid #1f2f50;
+}
+.macro-row{display:grid;grid-template-columns:repeat(4,1fr);gap:.5rem}
+.editor-footer{
+  padding:1rem 1.2rem;background:#16213e;border-top:1px solid #2d2d50;
+  display:flex;gap:.6rem;flex-shrink:0;
+}
+.btn-apply{
+  flex:1;padding:.65rem;background:#1D6A39;color:#fff;border:none;border-radius:3px;
+  font-family:'Crimson Pro',serif;font-size:.88rem;letter-spacing:.08em;
+  text-transform:uppercase;cursor:pointer;transition:background .2s;
+}
+.btn-apply:hover{background:#27a34f}
+.btn-download{
+  flex:1;padding:.65rem;background:#c4673a;color:#fff;border:none;border-radius:3px;
+  font-family:'Crimson Pro',serif;font-size:.88rem;letter-spacing:.08em;
+  text-transform:uppercase;cursor:pointer;transition:background .2s;
+}
+.btn-download:hover{background:#d4834a}
+.btn-new{
+  padding:.65rem 1rem;background:#1B4F72;color:#fff;border:none;border-radius:3px;
+  font-family:'Crimson Pro',serif;font-size:.88rem;letter-spacing:.08em;
+  text-transform:uppercase;cursor:pointer;transition:background .2s;
+}
+.btn-new:hover{background:#2471a3}
+
+/* ─── EDIT TOGGLE BUTTON ──────────────────────────── */
+#edit-fab{
+  position:fixed;bottom:1.8rem;right:1.8rem;z-index:1500;
+  width:54px;height:54px;border-radius:50%;background:var(--navy);color:#fff;
+  border:none;font-size:1.4rem;cursor:pointer;
+  box-shadow:0 4px 20px rgba(27,79,114,.45);transition:all .22s;
+  display:flex;align-items:center;justify-content:center;
+}
+#edit-fab:hover{background:var(--terracotta);transform:scale(1.07)}
+#edit-fab.active{background:var(--terracotta)}
+
+/* ─── TOAST ───────────────────────────────────────── */
+#toast{
+  position:fixed;bottom:2rem;left:50%;transform:translateX(-50%) translateY(60px);
+  background:#1D6A39;color:#fff;padding:.6rem 1.4rem;border-radius:3px;
+  font-size:.85rem;letter-spacing:.06em;z-index:3000;
+  transition:transform .3s ease,opacity .3s ease;opacity:0;pointer-events:none;
+}
+#toast.show{transform:translateX(-50%) translateY(0);opacity:1}
+
+/* ─── HEADER ──────────────────────────────────────── */
+.site-header{text-align:center;padding:3.5rem 2rem 1.5rem}
+.header-line{width:120px;height:2px;background:linear-gradient(90deg,transparent,var(--gold),transparent);margin:0 auto 1.4rem}
+.site-header h1{font-family:'Playfair Display',serif;font-size:clamp(2rem,5vw,3.4rem);font-weight:400;letter-spacing:.05em;line-height:1.1}
+.site-header h1 em{font-style:italic;color:var(--terracotta)}
+.site-header p{margin-top:.7rem;font-size:.82rem;color:var(--sea);font-weight:300;letter-spacing:.14em;text-transform:uppercase}
+
+/* ─── VIEW TABS ───────────────────────────────────── */
+.view-tabs{display:flex;justify-content:center;gap:0;margin:1.2rem auto 0;max-width:500px;border:1.5px solid var(--sand);border-radius:3px;overflow:hidden}
+.view-tab{flex:1;padding:.55rem 1rem;font-family:'Crimson Pro',serif;font-size:.88rem;letter-spacing:.08em;cursor:pointer;border:none;background:transparent;color:var(--deep);transition:all .22s;text-transform:uppercase}
+.view-tab+.view-tab{border-left:1.5px solid var(--sand)}
+.view-tab.active{background:var(--navy);color:#fff}
+.view-tab:not(.active):hover{background:var(--sand)}
+
+/* ─── FILTER BAR ──────────────────────────────────── */
+.filter-bar{display:flex;justify-content:center;flex-wrap:wrap;gap:.55rem;padding:1.4rem 2rem 2rem}
+.filter-btn{border:1.5px solid var(--sand);background:transparent;color:var(--deep);font-family:'Crimson Pro',serif;font-size:.88rem;letter-spacing:.06em;padding:.38rem 1rem;cursor:pointer;border-radius:2px;transition:all .22s}
+.filter-btn:hover{background:var(--deep);color:var(--cream);border-color:var(--deep)}
+.filter-btn.active{background:var(--terracotta);border-color:var(--terracotta);color:#fff}
+.view-panel{display:none}
+.view-panel.active{display:block}
+
+/* ─── CARDS ───────────────────────────────────────── */
+.cards-grid{max-width:1400px;margin:0 auto;padding:0 2rem 5rem;display:grid;grid-template-columns:repeat(auto-fill,minmax(330px,1fr));gap:1.8rem}
+.card{background:#fff;border-radius:3px;overflow:hidden;box-shadow:0 2px 18px rgba(42,31,20,.06);transition:transform .28s,box-shadow .28s;display:flex;flex-direction:column;opacity:0;animation:fadeUp .5s ease forwards}
+.card:hover{transform:translateY(-4px);box-shadow:0 8px 36px rgba(42,31,20,.12)}
+@keyframes fadeUp{from{opacity:0;transform:translateY(18px)}to{opacity:1;transform:translateY(0)}}
+.card:nth-child(1){animation-delay:.04s}.card:nth-child(2){animation-delay:.08s}
+.card:nth-child(3){animation-delay:.12s}.card:nth-child(4){animation-delay:.16s}
+.card:nth-child(5){animation-delay:.20s}.card:nth-child(6){animation-delay:.24s}
+.card:nth-child(7){animation-delay:.28s}.card:nth-child(8){animation-delay:.32s}
+.card:nth-child(9){animation-delay:.36s}.card:nth-child(10){animation-delay:.40s}
+.card:nth-child(11){animation-delay:.44s}.card:nth-child(12){animation-delay:.48s}
+.card:nth-child(13){animation-delay:.52s}
+.card-accent{height:4px;width:100%}
+.card-body{padding:1.5rem 1.5rem .9rem;flex:1}
+.card-category{font-size:.7rem;letter-spacing:.15em;text-transform:uppercase;opacity:.75;margin-bottom:.45rem}
+.card-title{font-family:'Playfair Display',serif;font-size:1.17rem;font-weight:400;line-height:1.35;margin-bottom:.4rem}
+.card-chef{font-size:.8rem;font-style:italic;opacity:.55;margin-bottom:.5rem}
+.porzioni-badge{display:inline-block;font-size:.68rem;letter-spacing:.1em;text-transform:uppercase;background:var(--deep);color:var(--cream);padding:.18rem .6rem;border-radius:2px;margin-bottom:.5rem}
+.divider{height:1px;background:linear-gradient(90deg,var(--sand),transparent);margin:.7rem 0}
+.tags{display:flex;flex-wrap:wrap;gap:.35rem;margin-bottom:.7rem}
+.tag{font-size:.7rem;padding:.18rem .55rem;border-radius:2px;letter-spacing:.04em}
+.tag-km0{background:rgba(107,124,74,.12);color:var(--olive)}
+.tag-dop{background:rgba(201,168,76,.15);color:#8a6d1a}
+.tag-mare{background:rgba(58,107,124,.12);color:var(--sea)}
+.tag-carne{background:rgba(180,60,60,.1);color:#8a2020}
+.tag-veg{background:rgba(107,124,74,.12);color:var(--olive)}
+.tag-legumi{background:rgba(196,103,58,.12);color:var(--terracotta)}
+.tag-integrale{background:rgba(42,31,20,.08);color:var(--deep)}
+.ingredients-section{padding:0 1.5rem .9rem}
+.ingredients-toggle{display:flex;align-items:center;gap:.45rem;cursor:pointer;font-size:.78rem;letter-spacing:.08em;text-transform:uppercase;color:var(--terracotta);border:none;background:none;font-family:'Crimson Pro',serif;padding:.5rem 0;width:100%;text-align:left;transition:opacity .2s}
+.ingredients-toggle:hover{opacity:.65}
+.toggle-icon{font-size:1rem;transition:transform .28s;display:inline-block;line-height:1}
+.toggle-icon.open{transform:rotate(45deg)}
+.ingredients-list{display:none;padding-bottom:.8rem;animation:slideDown .22s ease}
+.ingredients-list.open{display:block}
+@keyframes slideDown{from{opacity:0;transform:translateY(-5px)}to{opacity:1;transform:translateY(0)}}
+.ingredients-list ul{list-style:none;display:flex;flex-direction:column;gap:.28rem}
+.ingredients-list li{font-size:.9rem;display:flex;align-items:flex-start;gap:.45rem;line-height:1.4;font-weight:300}
+.ing-dot{width:5px;height:5px;border-radius:50%;background:var(--gold);margin-top:.45em;flex-shrink:0}
+.macros{display:grid;grid-template-columns:repeat(4,1fr);background:var(--cream);border-top:1px solid var(--sand);padding:.75rem 1.5rem}
+.macro{text-align:center}
+.macro-val{font-family:'Playfair Display',serif;font-size:1.05rem;font-weight:700;color:var(--deep);line-height:1}
+.macro-label{font-size:.63rem;letter-spacing:.07em;text-transform:uppercase;opacity:.5;margin-top:.18rem;display:block}
+.detail-btn{display:block;width:100%;padding:.55rem;background:var(--navy);color:#fff;border:none;cursor:pointer;font-family:'Crimson Pro',serif;font-size:.8rem;letter-spacing:.1em;text-transform:uppercase;transition:background .2s}
+.detail-btn:hover{background:var(--terracotta)}
+.card-edit-btn{display:block;width:100%;padding:.45rem;background:#f0f0f0;color:var(--deep);border:none;cursor:pointer;font-family:'Crimson Pro',serif;font-size:.75rem;letter-spacing:.1em;text-transform:uppercase;transition:background .2s;border-top:1px solid var(--sand)}
+.card-edit-btn:hover{background:var(--sand)}
+.acc-mare{background:linear-gradient(90deg,var(--sea),#5a9bb0)}
+.acc-legumi{background:linear-gradient(90deg,var(--terracotta),#d4845a)}
+.acc-veg{background:linear-gradient(90deg,var(--olive),#8a9e60)}
+.acc-pasta{background:linear-gradient(90deg,var(--gold),#d4b46c)}
+.acc-insalata{background:linear-gradient(90deg,#6b9c7c,#8abf9c)}
+.acc-zuppa{background:linear-gradient(90deg,#7c6b3a,#a08c50)}
+.cat-mare{color:var(--sea)}.cat-legumi{color:var(--terracotta)}.cat-veg{color:var(--olive)}
+.cat-pasta{color:#8a6d1a}.cat-insalata{color:#3a7c5a}.cat-zuppa{color:#7c6b3a}
+
+/* ─── SCHEDE ──────────────────────────────────────── */
+.schede-grid{max-width:1100px;margin:0 auto;padding:0 2rem 5rem;display:flex;flex-direction:column;gap:2.4rem}
+.scheda{background:#fff;border-radius:4px;overflow:hidden;box-shadow:0 2px 20px rgba(42,31,20,.07);opacity:0;animation:fadeUp .5s ease forwards}
+.scheda-header{padding:1.1rem 1.6rem;display:flex;align-items:center;gap:1rem;border-bottom:3px solid var(--navy)}
+.scheda-num{font-family:'Playfair Display',serif;font-size:2rem;font-weight:700;color:var(--navy);opacity:.25;line-height:1;flex-shrink:0;min-width:2.2rem}
+.scheda-title-block{flex:1}
+.scheda-title{font-family:'Playfair Display',serif;font-size:1.25rem;font-weight:400;color:var(--navy);line-height:1.25}
+.scheda-chef{font-size:.8rem;font-style:italic;opacity:.55;margin-top:.15rem}
+.scheda-body{display:grid;grid-template-columns:1fr 1fr}
+@media(max-width:700px){.scheda-body{grid-template-columns:1fr}}
+.scheda-cell{padding:1rem 1.4rem;border-right:1px solid var(--sky2);border-bottom:1px solid var(--sky2)}
+.scheda-cell:nth-child(2n){border-right:none}
+.scheda-cell.full{grid-column:1/-1;border-right:none}
+.scheda-cell-label{font-size:.68rem;letter-spacing:.14em;text-transform:uppercase;color:var(--navy);font-weight:400;margin-bottom:.4rem;display:flex;align-items:center;gap:.4rem}
+.scheda-cell-content{font-size:.92rem;line-height:1.6;font-weight:300}
+.scheda-cell.allergeni .scheda-cell-content{color:var(--aller);font-weight:400;background:var(--peach);border-radius:3px;padding:.5rem .7rem;font-size:.88rem}
+.scheda-cell.motiv .scheda-cell-content{color:var(--motiv);font-weight:300;background:var(--mint);border-radius:3px;padding:.6rem .8rem;font-size:.88rem;line-height:1.65}
+.scheda-cell.cottura .scheda-cell-content{color:#5D4037;font-weight:300;background:#FBF7F0;border-radius:3px;padding:.6rem .8rem;font-size:.88rem;line-height:1.65;border-left:3px solid var(--gold)}
+.scheda-cell.antitumorale .scheda-cell-content{color:var(--purple);font-weight:300;background:var(--purple-bg);border-radius:3px;padding:.6rem .8rem;font-size:.88rem;line-height:1.65}
+.scheda-cell.stagione .scheda-cell-content{font-style:italic;opacity:.7;font-size:.88rem}
+.ing-chips{display:flex;flex-wrap:wrap;gap:.35rem}
+.ing-chip{background:var(--sky);color:var(--navy);font-size:.75rem;padding:.2rem .55rem;border-radius:2px;line-height:1.4;font-weight:300}
+.ing-chip.dop{background:rgba(201,168,76,.2);color:#7a5c10}
+.ing-chip.igp{background:rgba(58,107,124,.15);color:var(--sea)}
+.ing-chip.km0{background:rgba(107,124,74,.18);color:var(--olive)}
+.macros-row{display:grid;grid-template-columns:repeat(4,1fr);background:var(--cream);border-top:1px solid var(--sky2)}
+.macros-row .macro{text-align:center;padding:.7rem .5rem}
+
+/* ─── MODAL ───────────────────────────────────────── */
+.modal-overlay{display:none;position:fixed;inset:0;background:rgba(42,31,20,.55);z-index:999;align-items:center;justify-content:center;padding:1rem}
+.modal-overlay.open{display:flex}
+.modal{background:#fff;border-radius:4px;max-width:700px;width:100%;max-height:90vh;overflow-y:auto;box-shadow:0 20px 60px rgba(0,0,0,.25);animation:modalIn .25s ease}
+@keyframes modalIn{from{opacity:0;transform:scale(.96)}to{opacity:1;transform:scale(1)}}
+.modal-close{float:right;margin:1rem 1.2rem 0 0;background:none;border:none;font-size:1.5rem;cursor:pointer;color:var(--deep);opacity:.5;transition:opacity .2s;line-height:1}
+.modal-close:hover{opacity:1}
+
+footer{text-align:center;padding:1.8rem;font-size:.73rem;letter-spacing:.1em;text-transform:uppercase;opacity:.4}
+
+@media(max-width:600px){
+  .cards-grid,.schede-grid{padding:0 1rem 3rem}
+  .site-header{padding:2.5rem 1rem 1.2rem}
+  #editor-sidebar{width:100vw}
+}
+
+/* ─── NEW SECTIONS ─────────────────────────────────── */
+:root {
+  --coral: #C0392B; --coral-bg: #FDEDEC;
+  --adapt-bg: #F4F6F7; --adapt-border: #AEB6BF;
+  --haccp-head: #2C3E50; --haccp-ccp: #E74C3C; --haccp-ok: #27AE60;
+}
+.scheda-cell.diabete .scheda-cell-content {
+  color:var(--coral);font-weight:300;background:var(--coral-bg);border-radius:3px;
+  padding:.6rem .8rem;font-size:.88rem;line-height:1.65;border-left:3px solid var(--coral);
+}
+.adapt-grid {display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:.6rem;margin-top:.4rem}
+.adapt-card {background:#fff;border:1px solid var(--adapt-border);border-radius:3px;padding:.7rem .9rem}
+.adapt-label {font-size:.68rem;letter-spacing:.1em;text-transform:uppercase;font-weight:600;margin-bottom:.3rem;display:block}
+.adapt-text {font-size:.83rem;line-height:1.55;font-weight:300}
+.adapt-vegan .adapt-label {color:#27AE60}
+.adapt-lattosio .adapt-label {color:#8E44AD}
+.adapt-celiaci .adapt-label {color:#D35400}
+.adapt-halal .adapt-label {color:#1A5276}
+.adapt-kosher .adapt-label {color:#7D6608}
+
+/* HACCP */
+.haccp-table-wrap {overflow-x:auto;margin-top:.5rem}
+.haccp-flow {display:flex;flex-direction:column;gap:0}
+.haccp-step {display:flex;gap:.6rem;align-items:stretch}
+.haccp-step-arrow {display:flex;flex-direction:column;align-items:center;flex-shrink:0;width:28px}
+.haccp-arrow-line {flex:1;width:2px;background:#AEB6BF;margin:0 auto}
+.haccp-arrow-head {font-size:.8rem;color:#AEB6BF;line-height:1}
+.haccp-box {flex:1;background:#fff;border:1px solid #AEB6BF;border-radius:3px;margin-bottom:4px;overflow:hidden}
+.haccp-box.is-ccp {border-color:var(--haccp-ccp);border-width:2px}
+.haccp-box-head {display:flex;align-items:center;gap:.5rem;padding:.5rem .8rem;background:#F2F3F4}
+.haccp-box.is-ccp .haccp-box-head {background:#FDEDEC}
+.haccp-step-name {font-size:.85rem;font-weight:600;flex:1;line-height:1.3}
+.haccp-ccp-badge {font-size:.62rem;letter-spacing:.1em;text-transform:uppercase;
+  background:var(--haccp-ccp);color:#fff;padding:.15rem .5rem;border-radius:2px;flex-shrink:0}
+.haccp-ok-badge {font-size:.62rem;letter-spacing:.1em;text-transform:uppercase;
+  background:var(--haccp-ok);color:#fff;padding:.15rem .5rem;border-radius:2px;flex-shrink:0}
+.haccp-box-body {padding:.45rem .8rem .55rem;display:grid;grid-template-columns:1fr 1fr;gap:.3rem .8rem}
+@media(max-width:600px){.haccp-box-body{grid-template-columns:1fr}}
+.haccp-field label {font-size:.63rem;letter-spacing:.1em;text-transform:uppercase;color:#5D6D7E;display:block;margin-bottom:.1rem}
+.haccp-field p {font-size:.82rem;line-height:1.5;font-weight:300}
+.haccp-legend {display:flex;gap:1rem;margin-top:.5rem;font-size:.75rem;align-items:center}
+.haccp-legend span {display:flex;align-items:center;gap:.3rem}
+/* view tab 3 */
+.view-tabs {max-width:700px !important}
+</style>
+</head>
+<body>
+
+<!-- ══ EDITOR SIDEBAR ══════════════════════════════ -->
+<div id="editor-sidebar">
+  <div class="editor-top">
+    <h2>✏️ Editor Ricette</h2>
+    <button class="editor-close" onclick="toggleEditor()" title="Chiudi">×</button>
+  </div>
+  <div class="editor-recipe-select">
+    <select id="editor-recipe-select" onchange="loadRecipeInEditor(parseInt(this.value))">
+    </select>
+  </div>
+  <div class="editor-body" id="editor-form-body">
+    <!-- form fields injected here -->
+  </div>
+  <div class="editor-footer">
+    <button class="btn-apply" onclick="applyEdits()">✓ Applica</button>
+    <button class="btn-new" onclick="addNewRecipe()">＋ Nuova</button>
+    <button class="btn-download" onclick="downloadHTML()">⬇ Scarica HTML</button>
+  </div>
+</div>
+
+<!-- ══ EDIT FAB ═════════════════════════════════════ -->
+<button id="edit-fab" onclick="toggleEditor()" title="Apri editor">✏️</button>
+
+<!-- ══ HEADER ══════════════════════════════════════ -->
+<header class="site-header">
+  <div class="header-line"></div>
+  <h1>Piatti <em>Salutari</em> Campani</h1>
+  <p>Cucina mediterranea · Prevenzione obesità, metabolica, oncologica, DT2, ipertensione · DOP · IGP · km0</p>
+  <div class="view-tabs" style="margin-top:1.6rem">
+    <button class="view-tab active" onclick="switchView('cards',this)">🃏 Schede Ricetta</button>
+    <button class="view-tab" onclick="switchView('schede',this)">🩺 Analisi Nutrizionale</button>
+    <button class="view-tab" onclick="switchView('haccp',this)">🔐 HACCP</button>
+  </div>
+</header>
+
+<!-- ══ VIEW 1 — CARDS ══════════════════════════════ -->
+<div id="view-cards" class="view-panel active">
+  <div class="filter-bar">
+    <button class="filter-btn active" onclick="filterCards('all',this)">Tutte (13)</button>
+    <button class="filter-btn" onclick="filterCards('mare',this)">🐟 Mare</button>
+    <button class="filter-btn" onclick="filterCards('pasta',this)">🍝 Pasta &amp; Cereali</button>
+    <button class="filter-btn" onclick="filterCards('insalata',this)">🥗 Insalate</button>
+    <button class="filter-btn" onclick="filterCards('legumi',this)">🫘 Legumi</button>
+    <button class="filter-btn" onclick="filterCards('veg',this)">🌿 Verdure</button>
+  </div>
+  <div class="cards-grid" id="cards-grid"></div>
+</div>
+
+<!-- ══ VIEW 2 — SCHEDE ═════════════════════════════ -->
+<div id="view-schede" class="view-panel">
+  <div class="filter-bar">
+    <button class="filter-btn active" onclick="filterSchede('all',this)">Tutte (13)</button>
+    <button class="filter-btn" onclick="filterSchede('mare',this)">🐟 Mare</button>
+    <button class="filter-btn" onclick="filterSchede('pasta',this)">🍝 Pasta &amp; Cereali</button>
+    <button class="filter-btn" onclick="filterSchede('insalata',this)">🥗 Insalate</button>
+    <button class="filter-btn" onclick="filterSchede('legumi',this)">🫘 Legumi</button>
+    <button class="filter-btn" onclick="filterSchede('veg',this)">🌿 Verdure</button>
+  </div>
+  <div class="schede-grid" id="schede-grid"></div>
+</div>
+
+
+<!-- ══ VIEW 3 — HACCP ══════════════════════════════ -->
+<div id="view-haccp" class="view-panel">
+  <div class="filter-bar">
+    <button class="filter-btn active" onclick="filterHaccp('all',this)">Tutte (13)</button>
+    <button class="filter-btn" onclick="filterHaccp('mare',this)">🐟 Mare</button>
+    <button class="filter-btn" onclick="filterHaccp('pasta',this)">🍝 Pasta &amp; Cereali</button>
+    <button class="filter-btn" onclick="filterHaccp('insalata',this)">🥗 Insalate</button>
+    <button class="filter-btn" onclick="filterHaccp('legumi',this)">🫘 Legumi</button>
+    <button class="filter-btn" onclick="filterHaccp('veg',this)">🌿 Verdure</button>
+  </div>
+  <div class="schede-grid" id="haccp-grid"></div>
+</div>
+
+<!-- ══ MODAL ════════════════════════════════════════ -->
+<div class="modal-overlay" id="modal-overlay" onclick="closeModal(event)">
+  <div class="modal" id="modal-content">
+    <button class="modal-close" onclick="closeModal()">×</button>
+    <div id="modal-body"></div>
+  </div>
+</div>
+
+<div id="toast"></div>
+<footer id="site-footer">13 ricette · Cucina campana · Prevenzione metabolica, oncologica, DT2, ipertensione, aterosclerosi · Dosi per 4 persone</footer>
+
+<script>
+/* ══════════════════════════════════════════════════
+   DATA
+══════════════════════════════════════════════════ */
+let data = [
+  {id:0,numero:1,title:"Polipetti alla Luciana",chef:"Capezza",cat:"mare",catLabel:"Mare & Pesce",accent:"acc-mare",
+   tags:[["mare","tag-mare"],["km0","tag-km0"]],porzioni:"Dosi per 4 persone",
+   ingredients:["400 g polipetti freschi (km0, mare di Napoli)","400 g pomodorini del Piennolo DOP","2 spicchi d'aglio","prezzemolo fresco","peperoncino","olio EVO campano","vino bianco secco","sale"],
+   macros:{kcal:210,prot:24,carb:8,grassi:9},note:"Cottura lenta in tegame di terracotta",
+   allergeni:"Molluschi (polipetti) · Solfiti (vino bianco)",
+   procedimento:"Pulire i polipetti. In tegame di terracotta rosolare aglio e peperoncino in olio EVO. Aggiungere i polipetti, sfumare con vino bianco. Unire i pomodorini del Piennolo schiacciati. Cuocere a fuoco basso con coperchio per 40–50 min finché i polipetti sono teneri. Terminare con abbondante prezzemolo fresco.",
+   motivazione:"Il polpo è una fonte eccellente di proteine magre (16 g/100 g) con pochissimi grassi. I pomodorini Piennolo apportano licopene e vitamina C. L'olio EVO fornisce grassi monoinsaturi cardioprotettivi. Assenza di amidi raffinati: basso indice glicemico ideale nella prevenzione della sindrome metabolica.",
+   cottura:"Brasatura lenta in tegame di terracotta a fuoco basso (40–50 min). Questo metodo di cottura umida a bassa temperatura preserva le proteine del polpo senza denaturarle eccessivamente, mantiene intatti i polifenoli dei pomodorini (il licopene aumenta addirittura la sua biodisponibilità con il calore) e permette agli aromi dell'aglio di sprigionarsi senza bruciare. Evitare cotture aggressive che indurirebbero i molluschi e degraderebbero le vitamine idrosolubili.",
+   antitumorale:"Il licopene dei pomodorini del Piennolo è uno dei carotenoidi con maggiore attività antiossidante: numerosi studi lo associano alla riduzione del rischio di tumori della prostata, polmone e stomaco. L'aglio contiene allicina e composti organosolfurati che inibiscono la proliferazione cellulare tumorale. Il prezzemolo è ricco di apigenina, un flavonoide con documentate proprietà antiproliferative. L'olio EVO apporta oleocantale, un polifenolo con proprietà antinfiammatorie simili all'ibuprofene, rilevante nella prevenzione oncologica.",
+   stagione:"Tutto l'anno (polipetti freschi disponibili; pomodorini Piennolo anche conservati)",
+   ingChips:[{t:"Polipetti km0",c:"km0"},{t:"Piennolo DOP",c:"dop"},{t:"Olio EVO campano",c:"km0"},{t:"Prezzemolo fresco",c:""},{t:"Aglio",c:""},{t:"Peperoncino",c:""},{t:"Vino bianco",c:""}]},
+
+  {id:1,numero:2,title:"Insalata di Farro con Fagioli e Tris di Pomodorini",chef:"Fiore",cat:"insalata",catLabel:"Insalate di Cereali",accent:"acc-insalata",
+   tags:[["DOP","tag-dop"],["veg","tag-veg"],["km0","tag-km0"]],porzioni:"Dosi per 4 persone",
+   ingredients:["200 g farro semiperlato","150 g fagioli borlotti cotti (locali)","100 g pomodorini Piennolo DOP","100 g pomodorini Insalata di Sorrento","100 g pomodorini gialli","basilico fresco","olio EVO","sale","aceto di vino bianco"],
+   macros:{kcal:310,prot:13,carb:52,grassi:7},note:"Tre tipologie di pomodorini campani per colori e sapori distinti",
+   allergeni:"Glutine (farro)",
+   procedimento:"Cuocere il farro in acqua salata per 25 min, scolare e raffreddare. Lavare e tagliare a metà i pomodorini. Mescolare farro, fagioli, pomodorini e basilico. Condire con olio EVO, sale e un filo di aceto. Lasciare riposare 15 min prima di servire.",
+   motivazione:"Il farro è un cereale integrale ricco di fibre (7 g/100 g) che abbassa l'indice glicemico. L'abbinamento con i fagioli garantisce un apporto proteico vegetale completo. Il licopene dei pomodorini è un potente antiossidante. Piatto saziante, ipocalorico e a basso indice glicemico.",
+   cottura:"Cottura in acqua bollente salata per il farro (25 min); nessuna cottura per i pomodorini, serviti a crudo. Mantenere i pomodorini crudi è fondamentale: preserva intatte la vitamina C (termolabile) e gli enzimi antiossidanti. Il farro viene cotto e poi raffreddato, favorendo la formazione di amido resistente che abbassa ulteriormente l'indice glicemico rispetto al farro appena cotto. Il condimento a freddo con olio EVO a crudo massimizza la biodisponibilità dei polifenoli.",
+   antitumorale:"I pomodorini in tre varietà moltiplicano l'apporto di licopene, betacarotene e vitamina C, antiossidanti che neutralizzano i radicali liberi responsabili di danni al DNA. Le fibre del farro e dei fagioli proteggono il colon favorendo un transito rapido e riducendo il contatto tra la mucosa intestinale e sostanze potenzialmente cancerogene. Il basilico contiene eugenolo e linalolo con attività antiproliferativa dimostrata in vitro. L'olio EVO arricchisce il piatto di polifenoli protettivi (oleuropeina, idrossitirosolo).",
+   stagione:"Estate-autunno (pomodorini freschi); farro disponibile tutto l'anno",
+   ingChips:[{t:"Farro semiperlato",c:""},{t:"Fagioli borlotti locali",c:"km0"},{t:"Piennolo DOP",c:"dop"},{t:"Insalata di Sorrento",c:"igp"},{t:"Pomodorini gialli",c:""},{t:"Olio EVO",c:"km0"}]},
+
+  {id:2,numero:3,title:"Insalata di Orzo con Sgombro, Fave e Limone di Sorrento",chef:"Pane",cat:"insalata",catLabel:"Insalate di Cereali",accent:"acc-insalata",
+   tags:[["IGP","tag-dop"],["mare","tag-mare"],["km0","tag-km0"]],porzioni:"Dosi per 4 persone",
+   ingredients:["200 g orzo perlato","200 g sgombro al naturale (pesca locale)","150 g fave fresche (stagione)","1 limone di Sorrento IGP (scorza e succo)","menta fresca","olio EVO campano","sale","pepe nero"],
+   macros:{kcal:340,prot:22,carb:44,grassi:10},note:"Il limone di Sorrento IGP regala un profumo intenso e agrumato",
+   allergeni:"Glutine (orzo) · Pesce (sgombro)",
+   procedimento:"Cuocere l'orzo in acqua salata per 30 min, raffreddare. Sbollentare le fave per 3 min, rimuovere la pellicina. Sgocciolare lo sgombro. In ciotola mescolare orzo, fave, sgombro sbriciolato, scorza e succo di limone di Sorrento, menta. Condire con olio EVO e regolare di sale.",
+   motivazione:"Lo sgombro è il 'pesce azzurro' per eccellenza: ricco di Omega-3 (2,2 g/100 g) che abbassano trigliceridi e colesterolo LDL, fattori chiave nella sindrome metabolica. Le fave apportano proteine vegetali e fibre. Il limone di Sorrento IGP aggiunge vitamina C e flavonoidi antiossidanti.",
+   cottura:"Cottura in acqua bollente per l'orzo (30 min) e breve sbollentatura delle fave (3 min). Lo sgombro al naturale in scatola non subisce ulteriori cotture, preservando gli acidi grassi Omega-3 sensibili al calore ossidativo. La breve sbollentatura delle fave consente di rimuovere la pellicina esterna (che contiene vicina, controindicata in chi ha favismo) e aumenta la digeribilità. Il limone viene usato a crudo per non disperdere la vitamina C e il limonene volatili.",
+   antitumorale:"Gli Omega-3 del pesce azzurro (EPA e DHA) hanno un'azione antinfiammatoria sistemica che contrasta la promozione tumorale legata all'infiammazione cronica; studi epidemiologici li associano alla riduzione del rischio di tumori del colon-retto, seno e prostata. Il limone di Sorrento IGP è eccezionalmente ricco di limonene, un monoterpene con provata attività di inibizione della crescita tumorale. Le fave contengono isoflavoni e folati che proteggono l'integrità del DNA. La menta apporta mentolo e acido rosmarinico con proprietà antiproliferative.",
+   stagione:"Primavera-estate (fave fresche aprile-giugno); limoni di Sorrento tutto l'anno",
+   ingChips:[{t:"Orzo perlato",c:""},{t:"Sgombro km0",c:"km0"},{t:"Fave fresche",c:""},{t:"Limone Sorrento IGP",c:"igp"},{t:"Olio EVO",c:"km0"},{t:"Menta fresca",c:""}]},
+
+  {id:3,numero:4,title:"Spaghetto di Gragnano alla Crema di Peperoni e Basilico",chef:"Apreda",cat:"pasta",catLabel:"Pasta",accent:"acc-pasta",
+   tags:[["veg","tag-veg"],["km0","tag-km0"]],porzioni:"Dosi per 4 persone",
+   ingredients:["320 g spaghetti di Gragnano IGP","3 peperoni rossi/gialli (stagione)","1 mazzo basilico fresco campano","1 spicchio d'aglio","olio EVO","parmigiano reggiano (30 g)","sale","pepe"],
+   macros:{kcal:420,prot:14,carb:70,grassi:11},note:"Mantecatura a fuoco spento per una crema vellutata",
+   allergeni:"Glutine (pasta) · Latte (parmigiano)",
+   procedimento:"Arrostire i peperoni in forno o fiamma diretta, spellarli e frullarli con olio, aglio e basilico fino a crema liscia. Cuocere gli spaghetti al dente. Scolare tenendo 1 mestolo di acqua di cottura. Mantecare la pasta con la crema di peperoni a fuoco medio. Terminare con parmigiano e basilico fresco.",
+   motivazione:"I peperoni sono tra i vegetali più ricchi di vitamina C e carotenoidi (betacarotene, capsantina), potenti antiossidanti che contrastano lo stress ossidativo legato all'obesità. La pasta di Gragnano IGP, trafilata al bronzo, ha un indice glicemico più basso rispetto a paste industriali. Condimento a base vegetale, privo di grassi saturi.",
+   cottura:"Arrostire i peperoni in forno a 220°C o alla fiamma diretta. Questa tecnica — la cottura per irraggiamento — caramellizza gli zuccheri superficiali (reazione di Maillard), sviluppa aromi complessi e rende più biodisponibili i carotenoidi. La mantecatura della pasta si esegue a fuoco spento o bassissimo: evita di degradare i polifenoli dell'olio EVO con temperature eccessive e produce un'emulsione cremosa stabile tra l'amido della pasta, l'acqua di cottura e i grassi, riducendo la quantità di condimento necessaria.",
+   antitumorale:"I peperoni rossi e gialli contengono capsantina e capsorubina, carotenoidi con elevata capacità antiossidante che inibiscono l'ossidazione del DNA. La capsaicina ha dimostrato in diversi studi di indurre l'apoptosi (morte programmata) nelle cellule tumorali. Il basilico è ricco di eugenolo e beta-sitosterolo, con attività antitumorale documentata specialmente sui tumori del tratto gastrointestinale. L'aglio contiene allicina e diallil disolfuro, tra le sostanze naturali più studiate in oncologia preventiva.",
+   stagione:"Estate-autunno (peperoni freschi luglio-ottobre)",
+   ingChips:[{t:"Gragnano IGP",c:"igp"},{t:"Peperoni km0",c:"km0"},{t:"Basilico campano",c:"km0"},{t:"Olio EVO",c:"km0"},{t:"Parmigiano",c:""}]},
+
+  {id:4,numero:5,title:"Filetto di Spigola su Crema di Lenticchie al Rosmarino",chef:"Valestra",cat:"mare",catLabel:"Mare & Pesce",accent:"acc-mare",
+   tags:[["mare","tag-mare"],["legumi","tag-legumi"]],porzioni:"Dosi per 4 persone",
+   ingredients:["4 filetti di spigola 160 g cad. (pesca costiera)","250 g lenticchie rosse","rosmarino fresco","basilico fresco","1 spicchio d'aglio","olio EVO","brodo vegetale","sale","pepe bianco"],
+   macros:{kcal:310,prot:34,carb:22,grassi:9},note:"Le lenticchie rosse non richiedono ammollo e si cuociono rapidamente",
+   allergeni:"Pesce (spigola)",
+   procedimento:"Cuocere le lenticchie rosse in brodo vegetale con aglio e rosmarino per 20 min. Frullare a crema, regolare di sale. In padella antiaderente cuocere i filetti lato pelle 3 min, girare e cuocere 2 min. Versare la crema nel piatto, adagiare il filetto, guarnire con basilico e un filo di olio EVO.",
+   motivazione:"La spigola è pesce magro con alto contenuto proteico (18 g/100 g) e grassi insaturi benefici. Le lenticchie rosse hanno proteine vegetali, ferro e fibre solubili che abbassano il colesterolo e regolano la glicemia. Piatto a bassissimo indice glicemico, saziante e ipocalorico.",
+   cottura:"Cottura del pesce in padella antiaderente senza grassi aggiunti (searing): 3 min lato pelle + 2 min lato carne. La tecnica garantisce la crosta croccante (reazione di Maillard) che sigilla i succhi interni, preserva le proteine nobili e i grassi insaturi. Le lenticchie rosse decorticata cuociono in soli 20 min senza ammollo: la cottura in brodo vegetale arricchisce il sapore senza aggiungere grassi. Frullare a crema aumenta la superficie di assorbimento dei nutrienti e migliora la sazietà.",
+   antitumorale:"Le lenticchie sono tra i legumi più ricchi di folati, essenziali per la sintesi e la riparazione del DNA; una carenza di folati è correlata a maggior rischio di tumori del colon-retto e della cervice. Contengono inoltre saponine e fitosteroli con effetto inibitorio sulla proliferazione cellulare. Il rosmarino è ricco di acido carnosico e rosmarinico, antiossidanti che bloccano enzimi pro-infiammatori implicati nella cancerogenesi. L'olio EVO apporta oleocantale e oleuropeina, con azione antitumorale confermata su linee cellulari di tumore al seno.",
+   stagione:"Tutto l'anno (lenticchie secche; spigola fresca disponibile tutto l'anno)",
+   ingChips:[{t:"Spigola km0",c:"km0"},{t:"Lenticchie rosse",c:""},{t:"Rosmarino fresco",c:""},{t:"Olio EVO",c:"km0"},{t:"Brodo vegetale",c:""}]},
+
+  {id:5,numero:6,title:"Insalata di Riso con Tonno, Mais e Olive",chef:"Vinaccia",cat:"insalata",catLabel:"Insalate di Cereali",accent:"acc-insalata",
+   tags:[["mare","tag-mare"]],porzioni:"Dosi per 4 persone",
+   ingredients:["200 g riso integrale o parboiled","160 g tonno al naturale (MSC)","80 g mais dolce","60 g olive nere di Gaeta DOP","pomodorini freschi","cetriolini","olio EVO campano","sale","origano"],
+   macros:{kcal:370,prot:20,carb:52,grassi:9},note:"Classico estivo, ottimo da preparare in anticipo",
+   allergeni:"Pesce (tonno)",
+   procedimento:"Cuocere il riso in acqua salata, scolare e raffreddare. Sgocciolare tonno e mais. Tagliare pomodorini e cetriolini. Mescolare tutti gli ingredienti. Condire con olio EVO, origano e sale. Servire freddo.",
+   motivazione:"Il tonno al naturale è proteina magra di alta qualità con Omega-3. Le olive di Gaeta DOP apportano acidi grassi monoinsaturi (oleico) con effetto cardioprotettivo. Usando riso integrale si aumenta l'apporto di fibre e si abbassa l'indice glicemico rispetto al riso bianco.",
+   cottura:"Cottura del riso in acqua bollente (riso integrale ~40 min, parboiled ~20 min), poi raffreddamento rapido. Come per il farro, il raffreddamento del riso genera amido resistente (RS3), che fermentato nel colon produce butirrato, un acido grasso protettivo per le cellule intestinali. Gli altri ingredienti — tonno, olive, pomodorini — vengono usati a crudo o già pronti, preservando tutti i nutrienti termolabili. L'olio EVO aggiunto a freddo mantiene inalterati i polifenoli.",
+   antitumorale:"Le olive di Gaeta DOP sono ricche di idrossitirosolo e oleuropeina, polifenoli tra i più potenti antiossidanti naturali con attività antitumorale su diversi tipi di cellule cancerose. Gli Omega-3 del tonno contrastano l'infiammazione cronica, uno dei principali promotori della cancerogenesi. Il riso integrale contiene lignani e acido ferulico che riducono i livelli di estrogeni circolanti, abbassando il rischio di tumori ormono-dipendenti. L'origano è ricco di carvacrolo e timolo, composti con documentata attività citotossica su cellule tumorali.",
+   stagione:"Estate (piatto freddo); ingredienti principali disponibili tutto l'anno",
+   ingChips:[{t:"Riso integrale",c:""},{t:"Tonno al naturale",c:""},{t:"Olive Gaeta DOP",c:"dop"},{t:"Pomodorini km0",c:"km0"},{t:"Olio EVO",c:"km0"}]},
+
+  {id:6,numero:7,title:"Orzotto Integrale al Limone della Costiera e Alici di Cetara",chef:"Cardillo",cat:"pasta",catLabel:"Cereali Integrali",accent:"acc-pasta",
+   tags:[["integrale","tag-integrale"],["mare","tag-mare"],["km0","tag-km0"]],porzioni:"Dosi per 4 persone",
+   ingredients:["300 g orzo integrale","8 alici di Cetara sotto sale (presidio Slow Food)","1 limone Costa Amalfitana","zucchine (stagione)","asparagi o verdure di stagione","aglio","olio EVO","prezzemolo","pepe"],
+   macros:{kcal:395,prot:18,carb:60,grassi:10},note:"Le alici di Cetara: presidio Slow Food, sapore intenso e minerale",
+   allergeni:"Glutine (orzo) · Pesce (alici)",
+   procedimento:"Ammollare l'orzo integrale 4 ore, cuocere come un risotto aggiungendo brodo caldo a mestoli per 35–40 min. Dissalare le alici, sfilettarle. Saltare le verdure in padella con aglio e olio. A cottura ultimata, mantecare con scorza di limone, succo, alici spezzettate e verdure. Prezzemolo fresco e olio EVO a crudo.",
+   motivazione:"L'orzo integrale è il cereale con il più alto contenuto di beta-glucani (fibre solubili) che riducono colesterolo LDL e glicemia post-prandiale. Le alici di Cetara sono ricche di Omega-3, calcio e vitamina D. Il limone della Costiera apporta vitamina C e polifenoli.",
+   cottura:"Tecnica del risotto applicata all'orzo integrale: aggiunta graduale di brodo caldo a mestoli e mantecatura finale. Questo metodo garantisce la massima cessione dell'amido e dei beta-glucani dell'orzo nel liquido di cottura, aumentandone la disponibilità e il potere addensante. Le alici vengono dissalate e aggiunte a fine cottura — senza ulteriore calore — per preservare gli Omega-3, molto sensibili all'ossidazione termica. L'olio EVO e il limone vengono incorporati a fuoco spento per non degradarne i composti bioattivi.",
+   antitumorale:"I beta-glucani dell'orzo integrale stimolano il sistema immunitario, aumentando l'attività delle cellule NK (Natural Killer) che eliminano cellule tumorali. Gli Omega-3 delle alici di Cetara inibiscono la sintesi di prostaglandine pro-infiammatorie, riducendo il rischio di tumori del colon. Il limonene del limone amalfitano è uno dei terpeni più studiati in oncologia: inibisce la farnesil-proteina transferasi, un enzima chiave nella crescita di molti tumori. Il prezzemolo apporta apigenina con effetti antiproliferativi documentati.",
+   stagione:"Primavera-estate (asparagi marzo-maggio; zucchine maggio-settembre)",
+   ingChips:[{t:"Orzo integrale",c:""},{t:"Alici Cetara",c:"km0"},{t:"Limone Costiera",c:"igp"},{t:"Zucchine km0",c:"km0"},{t:"Olio EVO",c:"km0"}]},
+
+  {id:7,numero:8,title:"Pasta Integrale con Piselli",chef:"Cappiello",cat:"pasta",catLabel:"Pasta Integrale",accent:"acc-pasta",
+   tags:[["integrale","tag-integrale"],["veg","tag-veg"],["legumi","tag-legumi"]],porzioni:"Dosi per 4 persone",
+   ingredients:["320 g pasta integrale (mezze maniche)","300 g piselli freschi (Piana del Sele)","1 cipolla dorata","olio EVO campano","brodo vegetale","parmigiano (20 g)","sale","pepe","menta fresca"],
+   macros:{kcal:380,prot:16,carb:62,grassi:8},note:"Con i piselli freschi di stagione il sapore cambia completamente",
+   allergeni:"Glutine (pasta) · Latte (parmigiano)",
+   procedimento:"Soffriggere la cipolla in olio EVO. Aggiungere i piselli, bagnare con brodo e cuocere 10–12 min. Schiacciare parte dei piselli per creare una crema parziale. Cuocere la pasta al dente, mantecare con i piselli e acqua di cottura. Finire con parmigiano e menta.",
+   motivazione:"I piselli sono legumi ricchi di proteine (6 g/100 g) e fibre. La pasta integrale ha un indice glicemico inferiore del 30% rispetto alla pasta raffinata. L'abbinamento cereale integrale + legume garantisce un profilo amminoacidico completo. Piatto ipocalorico e ad alta densità nutrizionale.",
+   cottura:"Soffritto leggero della cipolla in olio EVO (tecnica di base della cucina mediterranea): la cottura a fuoco moderato della cipolla libera i composti solforati e i flavonoidi, rendendoli più biodisponibili. I piselli vengono cotti brevemente (10–12 min) per preservarne il colore e la vitamina C; cuocerli troppo li ossiderebbe. La mantecatura con acqua di cottura della pasta crea una salsa leggera senza aggiungere grassi. La menta fresca è aggiunta sempre a crudo a fine preparazione.",
+   antitumorale:"I piselli contengono coumestani e isoflavonoidi, fitoestrogeni che modulano i recettori estrogenici riducendo il rischio di tumori ormono-dipendenti (seno, endometrio, prostata). Sono inoltre ricchi di vitamina K, che in studi recenti mostra effetti pro-apoptotici su cellule tumorali del fegato. Le fibre della pasta integrale e dei piselli aumentano la produzione di butirrato nel colon, un acido grasso a catena corta che inibisce la proliferazione delle cellule cancerose del colon-retto. La menta apporta perillyl alcohol, un monoterpene con attività antitumorale.",
+   stagione:"Primavera (piselli freschi aprile-giugno); tutto l'anno con piselli surgelati",
+   ingChips:[{t:"Pasta integrale",c:""},{t:"Piselli Piana del Sele",c:"km0"},{t:"Cipolla dorata",c:"km0"},{t:"Olio EVO",c:"km0"},{t:"Menta fresca",c:""}]},
+
+  {id:8,numero:9,title:"Riso con Verdure Miste (Carciofi, Broccoli, Verza)",chef:"Milano",cat:"veg",catLabel:"Verdure & Cereali",accent:"acc-veg",
+   tags:[["veg","tag-veg"],["km0","tag-km0"]],porzioni:"Dosi per 4 persone",
+   ingredients:["300 g riso carnaroli","2 carciofi di Paestum IGP (stagione)","200 g cimette di broccoli (agro-sarnese)","150 g verza (stagione)","1 spicchio d'aglio","olio EVO","brodo vegetale","sale","pepe"],
+   macros:{kcal:320,prot:10,carb:56,grassi:7},note:"Verdure invernali per un piatto ricco di fibre e antiossidanti",
+   allergeni:"Nessun allergene principale (verificare il brodo utilizzato)",
+   procedimento:"Pulire e tagliare le verdure. In padella rosolare l'aglio in olio EVO, aggiungere i carciofi, poi broccoli e verza. Tostare il riso separatamente, aggiungere brodo caldo e cuocere 16–18 min. Unire le verdure al riso a metà cottura. Regolare di sale.",
+   motivazione:"I carciofi contengono cinarina che favorisce la funzione epatica e abbassa il colesterolo. I broccoli sono ricchi di sulforafano (anticancro) e vitamina C. La verza apporta glucosinolati e fibre. Piatto privo di grassi saturi, ricco di fibre e micronutrienti.",
+   cottura:"Le verdure vengono saltate in padella con olio EVO a fuoco vivace (tecnica stir-fry veloce): questa cottura breve ad alta temperatura preserva la croccantezza e, soprattutto per i broccoli, mantiene attiva la mirosinasi, l'enzima necessario alla conversione del glucorafanino in sulforafano. Cotture lunghe in acqua bollente dimezzerebbero il contenuto di glucosinolati. Il riso viene tostato a secco prima di aggiungere il brodo: la tostatura sigilla i granuli e abbassa ulteriormente l'indice glicemico.",
+   antitumorale:"Questo piatto è uno dei più potenti in chiave oncologica. Il sulforafano dei broccoli è la molecola di origine alimentare più studiata in oncologia: attiva i geni soppressori tumorali e inibisce la proliferazione di cellule tumorali di seno, colon, prostata e polmone. La verza (famiglia Brassicacea) contiene indolo-3-carbinolo (I3C) che modula il metabolismo estrogenico riducendo il rischio di tumori ormonali. I carciofi sono ricchi di silimarina e luteolina, antiossidanti con provata azione epato-protettiva e antiproliferativa. L'aglio aggiunge allicina con effetto antitumorale confermato.",
+   stagione:"Autunno-inverno (carciofi ottobre-maggio; broccoli e verza ottobre-marzo)",
+   ingChips:[{t:"Riso carnaroli",c:""},{t:"Carciofi Paestum IGP",c:"igp"},{t:"Broccoli agro-sarnese",c:"km0"},{t:"Verza km0",c:"km0"},{t:"Olio EVO",c:"km0"}]},
+
+  {id:9,numero:10,title:"Insalata di Farro, Pollo e Verdure di Stagione",chef:"Covino",cat:"insalata",catLabel:"Insalate di Cereali",accent:"acc-insalata",
+   tags:[["carne","tag-carne"],["km0","tag-km0"]],porzioni:"Dosi per 4 persone",
+   ingredients:["200 g farro semiperlato","250 g petto di pollo (filiera corta campana)","2 carote (agro-sarnese)","2 zucchine (stagione)","150 g pomodorini campani","basilico fresco","olio EVO","limone","sale","pepe"],
+   macros:{kcal:360,prot:28,carb:42,grassi:9},note:"Bilanciato in macronutrienti, ideale come piatto unico",
+   allergeni:"Glutine (farro)",
+   procedimento:"Cuocere il farro in acqua salata 25 min, raffreddare. Cuocere il petto di pollo alla griglia, tagliare a cubetti. Scottare carote e zucchine in padella con poco olio 5 min (al dente). Mescolare farro, pollo, verdure e pomodorini. Condire con olio EVO, succo di limone, sale e basilico.",
+   motivazione:"Piatto unico bilanciato: il farro fornisce carboidrati complessi con alto contenuto di fibre, il pollo è fonte proteica magra (22 g/100 g) con bassissimo contenuto di grassi saturi. Il bilanciamento macronutrienti (carboidrati complessi, proteine magre, grassi buoni) è il principio cardine nella prevenzione dell'obesità.",
+   cottura:"Il pollo viene cotto alla griglia senza grassi aggiunti: questa tecnica mantiene il profilo lipidico magro del petto evitando l'aggiunta di calorie. Attenzione a non carbonizzare la superficie, in quanto la carbonizzazione produce ammine eterocicliche potenzialmente cancerogene. Le verdure vengono scottate brevemente al dente per preservarne vitamine e clorofilla. Il farro viene raffreddato dopo la cottura per aumentare l'amido resistente. Tutto il condimento (olio EVO, limone) è aggiunto a crudo.",
+   antitumorale:"Il farro contiene lignani, fitoestrogeni che riducono i livelli di estrogeni liberi nel sangue, abbassando il rischio di tumori ormono-dipendenti. Le zucchine apportano luteina e zeaxantina, carotenoidi con attività antiossidante. Le carote sono ricche di betacarotene (pro-vitamina A), associato alla riduzione del rischio di tumori di polmone ed esofago. I pomodorini campani aggiungono licopene. Il basilico completa con eugenolo. Preferire il pollo a carni rosse o processate riduce l'esposizione a composti N-nitroso, implicati nel tumore del colon.",
+   stagione:"Estate (zucchine, pomodorini); carote disponibili tutto l'anno",
+   ingChips:[{t:"Farro semiperlato",c:""},{t:"Pollo filiera corta",c:"km0"},{t:"Carote agro-sarnese",c:"km0"},{t:"Zucchine km0",c:"km0"},{t:"Pomodorini campani",c:"km0"}]},
+
+  {id:10,numero:11,title:"Linguine di Gragnano al Limone di Sorrento e Burro alle Erbe",chef:"Di Leva",cat:"pasta",catLabel:"Pasta",accent:"acc-pasta",
+   tags:[["km0","tag-km0"],["IGP","tag-dop"]],porzioni:"Dosi per 4 persone",
+   ingredients:["320 g linguine di Gragnano IGP","2 limoni di Sorrento IGP (scorza e succo)","40 g burro di qualità","timo fresco","erba cipollina","prezzemolo","parmigiano reggiano (20 g)","sale","pepe bianco","1 cucchiaio olio EVO"],
+   macros:{kcal:450,prot:13,carb:66,grassi:17},note:"La scorza del limone di Sorrento è profumatissima e fondamentale",
+   allergeni:"Glutine (pasta) · Latte (burro, parmigiano)",
+   procedimento:"Cuocere le linguine al dente. Sciogliere il burro a fuoco basso con timo ed erba cipollina. Aggiungere scorza e succo di limone di Sorrento. Mantecare pasta con il burro alle erbe e acqua di cottura per la cremosità. Completare con parmigiano e prezzemolo.",
+   motivazione:"Il limone di Sorrento IGP è ricco di vitamina C, limonene e flavonoidi con proprietà antinfiammatorie e antiossidanti che contrastano lo stress ossidativo. La pasta di Gragnano IGP ha un indice glicemico più basso. Il burro è ridotto a 40 g per 4 porzioni in favore dell'olio EVO.",
+   cottura:"Cottura della pasta al dente in abbondante acqua salata: la cottura al dente riduce l'indice glicemico rispetto alla pasta scotta grazie alla struttura dell'amido ancora parzialmente compatta. Il burro viene sciolto a fuoco bassissimo con le erbe aromatiche (infusione a freddo controllata): evita di bruciare i composti volatili del timo e del prezzemolo. Il limone — succo e scorza — viene aggiunto sempre fuori fuoco: il calore degraderebbe il limonene e la vitamina C. La mantecatura finale lega la salsa senza eccedere in grassi.",
+   antitumorale:"Il limonene, abbondantissimo nella scorza del limone di Sorrento IGP, è tra i composti naturali più promettenti in campo oncologico: inibisce la proliferazione tumorale in modelli animali di tumore al seno, colon e fegato, e ha mostrato effetti favorevoli anche in studi clinici preliminari. La vitamina C del limone fresco protegge le cellule dai radicali liberi e inibisce la formazione di nitrosammine cancerogene nel tratto gastrointestinale. Il timo contiene timolo e carvacrolo con attività citotossica. L'erba cipollina apporta composti solforati simili a quelli dell'aglio con effetto antiproliferativo.",
+   stagione:"Tutto l'anno (limoni di Sorrento); erbe aromatiche fresche in primavera-estate",
+   ingChips:[{t:"Gragnano IGP",c:"igp"},{t:"Limone Sorrento IGP",c:"igp"},{t:"Burro (ridotto)",c:""},{t:"Erbe aromatiche",c:""},{t:"Olio EVO",c:"km0"}]},
+
+  {id:11,numero:12,title:"Zuppa di Lenticchie, Carciofi, Cicoria e Crostini Integrali",chef:"Russo",cat:"legumi",catLabel:"Zuppe & Legumi",accent:"acc-zuppa",
+   tags:[["legumi","tag-legumi"],["integrale","tag-integrale"],["veg","tag-veg"]],porzioni:"Dosi per 4 persone",
+   ingredients:["200 g lenticchie verdi","2 carciofi di Paestum IGP","150 g cicoria selvatica (km0, campagna campana)","2 fette pane integrale (crostini)","1 spicchio d'aglio","rosmarino","olio EVO","brodo vegetale","sale","peperoncino"],
+   macros:{kcal:290,prot:17,carb:44,grassi:7},note:"Piatto povero della tradizione contadina campana, ricchissimo di nutrienti",
+   allergeni:"Glutine (pane integrale)",
+   procedimento:"Ammollare le lenticchie 30 min. Rosolare aglio e rosmarino in olio EVO. Aggiungere lenticchie, carciofi tagliati, brodo. Cuocere 35–40 min. A fine cottura aggiungere la cicoria sbollentata e strizzata. Regolare di sale e peperoncino. Servire con crostini integrali tostati e olio EVO a crudo.",
+   motivazione:"Zuppa ad altissima densità nutritiva e minima densità calorica. Le lenticchie hanno un IG molto basso (21). I carciofi contengono inulina (fibra prebiotica) che migliora la flora intestinale e riduce la glicemia. La cicoria è ipocalorica (17 kcal/100 g) e ricca di vitamina K, folati e antiossidanti.",
+   cottura:"Cottura lenta in pentola (zuppa): la lunga cottura delle lenticchie e dei carciofi (35–40 min) intenerisce le fibre vegetali rendendole più digeribili senza distruggerne i flavonoidi, che sono stabili al calore. La cicoria viene sbollentata separatamente (2–3 min) e strizzata: questo passaggio riduce il sapore amaro eccessivo e abbatte gli ossalati, rendendo i minerali più biodisponibili. I crostini integrali vengono tostati in forno senza olio. L'olio EVO viene versato sempre a crudo nel piatto finale, tecnica fondamentale per preservarne tutti i polifenoli.",
+   antitumorale:"Questo è probabilmente il piatto con il più alto potenziale anticancro della lista. La cicoria selvatica contiene lactucopicrina e acido cicorico, composti amari con spiccata azione pro-apoptotica su cellule tumorali. I carciofi sono ricchi di silimarina, apigenina e luteolina: tre flavonoidi con documentata attività di inibizione della cancerogenesi epatica e del colon. Le lenticchie apportano folati che proteggono l'integrità del DNA. Il peperoncino aggiunge capsaicina con effetto antitumorale. Il rosmarino contribuisce con acido carnosico, uno degli antiossidanti liposolubili più potenti in natura.",
+   stagione:"Autunno-inverno (carciofi e cicoria selvatica ottobre-aprile)",
+   ingChips:[{t:"Lenticchie verdi",c:""},{t:"Carciofi Paestum IGP",c:"igp"},{t:"Cicoria selvatica km0",c:"km0"},{t:"Pane integrale",c:""},{t:"Olio EVO",c:"km0"}]},
+
+  {id:12,numero:13,title:"Pasta alla Nerano Integrale",chef:"D'Esposito",cat:"pasta",catLabel:"Pasta Integrale",accent:"acc-pasta",
+   tags:[["integrale","tag-integrale"],["veg","tag-veg"],["km0","tag-km0"]],porzioni:"Dosi per 4 persone",
+   ingredients:["320 g pasta integrale (paccheri o spaghetti)","500 g zucchine di Nerano (stagione, km0)","olio di semi arachide (per friggere, controllato)","provolone del Monaco DOP (40 g)","parmigiano reggiano (20 g)","basilico fresco campano","aglio","sale","pepe nero"],
+   macros:{kcal:480,prot:18,carb:62,grassi:19},note:"Variante integrale dell'iconica ricetta della costiera sorrentina",
+   allergeni:"Glutine (pasta) · Latte (provolone del Monaco, parmigiano)",
+   procedimento:"Tagliare le zucchine a rondelle sottili, friggerle fino a doratura, scolare su carta assorbente. Frullare metà delle zucchine con acqua di cottura per formare una crema. Cuocere la pasta al dente. Mantecare con la crema di zucchine, rondelle intere, provolone del Monaco a julienne, parmigiano e basilico fresco.",
+   motivazione:"La versione integrale riduce significativamente l'indice glicemico grazie alla fibra della farina integrale. Le zucchine sono ipocaloriche (17 kcal/100 g), ricche di potassio e vitamina C. Il provolone del Monaco DOP è usato in quantità moderata per il sapore senza eccedere in grassi saturi.",
+   cottura:"La frittura delle zucchine in olio di semi di arachide ad alta temperatura (180°C) crea una crosta che limita l'assorbimento di olio. Scolare subito su carta assorbente è essenziale per ridurre i grassi: frittura breve e drenaggio efficace abbattono il grasso assorbito del 30–40%. Frullare metà delle zucchine con acqua di cottura permette di ottenere cremosità senza aggiungere panna o formaggi in eccesso. Il provolone del Monaco viene aggiunto fuori fuoco nella mantecatura finale: il calore residuo è sufficiente per scioglierlo senza degradarne gli aromi.",
+   antitumorale:"Le zucchine contengono cucurbitacine, composti triterpenici con accertata attività antitumorale su cellule di leucemia e tumore al seno, e luteina con funzione antiossidante protettiva per le cellule. Il basilico fresco apporta eugenolo che inibisce l'angiogenesi tumorale (la formazione di nuovi vasi sanguigni che nutrono i tumori). L'aglio è uno degli alimenti anticancro meglio documentati in letteratura scientifica: i suoi organosolfurati (allicina, diallil disolfuro) inducono l'apoptosi in numerose linee cellulari tumorali. La pasta integrale aumenta la produzione di butirrato nel colon, che svolge una funzione protettiva contro il tumore del colon-retto.",
+   stagione:"Estate (zucchine di Nerano maggio-settembre, stagione ottimale)",
+   ingChips:[{t:"Pasta integrale",c:""},{t:"Zucchine Nerano km0",c:"km0"},{t:"Provolone Monaco DOP",c:"dop"},{t:"Basilico campano",c:"km0"},{t:"Parmigiano",c:""}]}
+];
+
+/* ══════════════════════════════════════════════════
+   EDITOR LOGIC
+══════════════════════════════════════════════════ */
+let editorOpen = false;
+let currentEditId = 0;
+
+function toggleEditor() {
+  editorOpen = !editorOpen;
+  document.getElementById('editor-sidebar').classList.toggle('open', editorOpen);
+  document.getElementById('edit-fab').classList.toggle('active', editorOpen);
+  if (editorOpen) buildEditorSelect();
+}
+
+function buildEditorSelect() {
+  const sel = document.getElementById('editor-recipe-select');
+  sel.innerHTML = data.map(r => `<option value="${r.id}">${r.numero}. ${r.title}</option>`).join('');
+  sel.value = currentEditId;
+  loadRecipeInEditor(currentEditId);
+}
+
+function loadRecipeInEditor(id) {
+  currentEditId = id;
+  const r = data.find(x => x.id === id);
+  if (!r) return;
+  const cats = [{v:'mare',l:'Mare & Pesce'},{v:'pasta',l:'Pasta & Cereali'},{v:'insalata',l:'Insalate'},{v:'legumi',l:'Legumi'},{v:'veg',l:'Verdure'}];
+  const catOpts = cats.map(c => `<option value="${c.v}" ${r.cat===c.v?'selected':''}>${c.l}</option>`).join('');
+  document.getElementById('editor-form-body').innerHTML = `
+    <div class="field-section-title">📋 Informazioni base</div>
+    <div class="field-group"><label>Nome del piatto</label><input id="ef-title" value="${esc(r.title)}"></div>
+    <div class="field-group"><label>Chef / Autore</label><input id="ef-chef" value="${esc(r.chef)}"></div>
+    <div class="field-group"><label>Categoria</label><select id="ef-cat">${catOpts}</select></div>
+    <div class="field-group"><label>Dosi / Porzioni</label><input id="ef-porzioni" value="${esc(r.porzioni)}"></div>
+    <div class="field-group"><label>Nota breve</label><input id="ef-note" value="${esc(r.note)}"></div>
+    <div class="field-sep"></div>
+    <div class="field-section-title">🛒 Ingredienti (uno per riga)</div>
+    <div class="field-group"><textarea id="ef-ing" class="tall">${r.ingredients.join('\n')}</textarea></div>
+    <div class="field-sep"></div>
+    <div class="field-section-title">⚠️ Allergeni</div>
+    <div class="field-group"><input id="ef-allergeni" value="${esc(r.allergeni)}"></div>
+    <div class="field-sep"></div>
+    <div class="field-section-title">📊 Valori nutrizionali (per porzione)</div>
+    <div class="macro-row">
+      <div class="field-group"><label>kcal</label><input type="number" id="ef-kcal" value="${r.macros.kcal}"></div>
+      <div class="field-group"><label>Proteine g</label><input type="number" id="ef-prot" value="${r.macros.prot}"></div>
+      <div class="field-group"><label>Carboidrati g</label><input type="number" id="ef-carb" value="${r.macros.carb}"></div>
+      <div class="field-group"><label>Grassi g</label><input type="number" id="ef-grassi" value="${r.macros.grassi}"></div>
+    </div>
+    <div class="field-sep"></div>
+    <div class="field-section-title">👨‍🍳 Procedimento</div>
+    <div class="field-group"><textarea id="ef-proc" class="tall">${esc(r.procedimento)}</textarea></div>
+    <div class="field-sep"></div>
+    <div class="field-section-title">🩺 Motivazione nutrizionale</div>
+    <div class="field-group"><textarea id="ef-motiv" class="tall">${esc(r.motivazione)}</textarea></div>
+    <div class="field-sep"></div>
+    <div class="field-section-title">🍳 Tecniche di cottura</div>
+    <div class="field-group"><textarea id="ef-cottura" class="tall">${esc(r.cottura)}</textarea></div>
+    <div class="field-sep"></div>
+    <div class="field-section-title">🔬 Prevenzione oncologica</div>
+    <div class="field-group"><textarea id="ef-antitum" class="tall">${esc(r.antitumorale)}</textarea></div>
+    <div class="field-sep"></div>
+    <div class="field-section-title">🌿 Stagionalità</div>
+    <div class="field-group"><input id="ef-stagione" value="${esc(r.stagione)}"></div>
+    <div class="field-sep"></div>
+    <div class="field-section-title" style="color:#e07070">🗑 Elimina ricetta</div>
+    <div class="field-group">
+      <button onclick="deleteRecipe(${r.id})" style="width:100%;padding:.5rem;background:#7a2020;color:#fff;border:none;border-radius:3px;cursor:pointer;font-family:'Crimson Pro',serif;font-size:.85rem">Elimina questa ricetta</button>
+    </div>
+  `;
+}
+
+function esc(s){ return (s||'').replace(/&/g,'&amp;').replace(/"/g,'&quot;').replace(/</g,'&lt;').replace(/>/g,'&gt;') }
+
+function applyEdits() {
+  const r = data.find(x => x.id === currentEditId);
+  if (!r) return;
+  r.title       = document.getElementById('ef-title').value.trim();
+  r.chef        = document.getElementById('ef-chef').value.trim();
+  const newCat  = document.getElementById('ef-cat').value;
+  const catLabels = {mare:'Mare & Pesce',pasta:'Pasta & Cereali',insalata:'Insalate di Cereali',legumi:'Zuppe & Legumi',veg:'Verdure & Cereali'};
+  r.cat         = newCat;
+  r.catLabel    = catLabels[newCat] || newCat;
+  r.porzioni    = document.getElementById('ef-porzioni').value.trim();
+  r.note        = document.getElementById('ef-note').value.trim();
+  r.ingredients = document.getElementById('ef-ing').value.split('\n').map(s=>s.trim()).filter(Boolean);
+  r.allergeni   = document.getElementById('ef-allergeni').value.trim();
+  r.macros.kcal = parseInt(document.getElementById('ef-kcal').value)||0;
+  r.macros.prot = parseInt(document.getElementById('ef-prot').value)||0;
+  r.macros.carb = parseInt(document.getElementById('ef-carb').value)||0;
+  r.macros.grassi= parseInt(document.getElementById('ef-grassi').value)||0;
+  r.procedimento= document.getElementById('ef-proc').value.trim();
+  r.motivazione = document.getElementById('ef-motiv').value.trim();
+  r.cottura     = document.getElementById('ef-cottura').value.trim();
+  r.antitumorale= document.getElementById('ef-antitum').value.trim();
+  r.stagione    = document.getElementById('ef-stagione').value.trim();
+  renderCards(currentCardFilter);
+  renderSchede(currentSchedeFilter);
+  buildEditorSelect();
+  showToast('✓ Modifiche applicate!');
+}
+
+function deleteRecipe(id) {
+  if (!confirm('Eliminare questa ricetta?')) return;
+  data = data.filter(r => r.id !== id);
+  currentEditId = data.length ? data[0].id : -1;
+  renderCards(currentCardFilter);
+  renderSchede(currentSchedeFilter);
+  buildEditorSelect();
+  showToast('Ricetta eliminata');
+}
+
+function addNewRecipe() {
+  const newId = Date.now();
+  const newNum = data.length + 1;
+  data.push({
+    id:newId, numero:newNum,
+    title:"Nuova ricetta", chef:"",
+    cat:"veg", catLabel:"Verdure & Cereali", accent:"acc-veg",
+    tags:[["veg","tag-veg"]], porzioni:"Dosi per 4 persone",
+    ingredients:["Ingrediente 1","Ingrediente 2"],
+    macros:{kcal:0,prot:0,carb:0,grassi:0},
+    note:"", allergeni:"Nessuno",
+    procedimento:"Descrivi il procedimento...",
+    motivazione:"Descrivi la motivazione nutrizionale...",
+    cottura:"Descrivi le tecniche di cottura...",
+    antitumorale:"Descrivi i benefici oncologici...",
+    stagione:"Tutto l'anno",
+    ingChips:[{t:"Ingrediente",c:""}]
+  });
+  currentEditId = newId;
+  renderCards(currentCardFilter);
+  renderSchede(currentSchedeFilter);
+  buildEditorSelect();
+  showToast('✓ Nuova ricetta aggiunta!');
+}
+
+function showToast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), 2500);
+}
+
+/* ══════════════════════════════════════════════════
+   DOWNLOAD HTML
+══════════════════════════════════════════════════ */
+function downloadHTML() {
+  // Serialize current data into a self-contained HTML
+  const serialized = JSON.stringify(data, null, 2)
+    .replace(/<\/script>/g, '<\\/script>');
+
+  // Get the current page HTML and swap out the data array
+  let html = document.documentElement.outerHTML;
+  // Replace the data array between the markers
+  html = html.replace(
+    /\/\* ══+ DATA ══+\*\/[\s\S]*?^];/m,
+    `/* ${'═'.repeat(50)}\n   DATA\n${'═'.repeat(50)} */\nlet data = ${serialized};`
+  );
+  const blob = new Blob([html], {type:'text/html;charset=utf-8'});
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = 'ricette_salutari.html';
+  a.click();
+  showToast('⬇ Download avviato!');
+}
+
+/* ══════════════════════════════════════════════════
+   RENDER CARDS
+══════════════════════════════════════════════════ */
+let currentCardFilter = 'all';
+function renderCards(filter) {
+  currentCardFilter = filter;
+  const grid = document.getElementById('cards-grid');
+  grid.innerHTML = '';
+  data.filter(r => filter==='all' || r.cat===filter).forEach((r,i) => {
+    const tagsHtml = r.tags.map(([l,c]) => `<span class="tag ${c}">${l}</span>`).join('');
+    const ingHtml  = r.ingredients.map(ing => `<li><span class="ing-dot"></span>${ing}</li>`).join('');
+    const card = document.createElement('div');
+    card.className = 'card';
+    card.style.animationDelay = `${i*.06}s`;
+    card.innerHTML = `
+      <div class="card-accent ${r.accent}"></div>
+      <div class="card-body">
+        <div class="card-category cat-${r.cat}">${r.catLabel}</div>
+        <div class="card-title">${r.title}</div>
+        <div class="card-chef">${r.chef ? 'Chef / Autore: '+r.chef : ''}</div>
+        <span class="porzioni-badge">${r.porzioni}</span>
+        <div class="divider"></div>
+        <div class="tags">${tagsHtml}</div>
+        ${r.note ? `<p style="font-size:.86rem;font-style:italic;opacity:.6;font-weight:300;line-height:1.45">${r.note}</p>` : ''}
+      </div>
+      <div class="ingredients-section">
+        <button class="ingredients-toggle" onclick="toggleIng(this)">
+          <span class="toggle-icon">+</span>&nbsp; Ingredienti
+        </button>
+        <div class="ingredients-list"><ul>${ingHtml}</ul></div>
+      </div>
+      <div class="macros">
+        <div class="macro"><div class="macro-val">${r.macros.kcal}</div><span class="macro-label">kcal</span></div>
+        <div class="macro"><div class="macro-val">${r.macros.prot}g</div><span class="macro-label">proteine</span></div>
+        <div class="macro"><div class="macro-val">${r.macros.carb}g</div><span class="macro-label">carboidrati</span></div>
+        <div class="macro"><div class="macro-val">${r.macros.grassi}g</div><span class="macro-label">grassi</span></div>
+      </div>
+      <button class="detail-btn" onclick="openModal(${r.id})">📋 Scheda nutrizionale completa</button>
+      <button class="card-edit-btn" onclick="openEditorFor(${r.id})">✏️ Modifica ricetta</button>
+    `;
+    grid.appendChild(card);
+  });
+}
+
+/* ══════════════════════════════════════════════════
+   RENDER SCHEDE
+══════════════════════════════════════════════════ */
+let currentSchedeFilter = 'all';
+
+/* ══════════════════════════════════════════════════
+   MODAL
+══════════════════════════════════════════════════ */
+function openModal(id) {
+  const r = data.find(x => x.id===id);
+  if (!r) return;
+  const chipsHtml = r.ingChips.map(c => `<span class="ing-chip ${c.c}">${c.t}</span>`).join('');
+  document.getElementById('modal-body').innerHTML = `
+    <div style="border-top:4px solid var(--navy)">
+      <div class="scheda-header" style="background:var(--sky2)">
+        <div class="scheda-num">${r.numero}</div>
+        <div class="scheda-title-block">
+          <div class="scheda-title">${r.title}</div>
+          ${r.chef ? `<div class="scheda-chef">Chef / Autore: ${r.chef}</div>` : ''}
+        </div>
+      </div>
+      <div style="padding:1.2rem 1.5rem;display:flex;flex-direction:column;gap:1rem">
+        <div>
+          <div class="scheda-cell-label"><span class="lbl-icon">🛒</span> Ingredienti</div>
+          <span class="porzioni-badge" style="margin:.4rem 0;display:inline-block">${r.porzioni}</span>
+          <div class="ing-chips" style="margin-top:.4rem">${chipsHtml}</div>
+          <p style="margin-top:.5rem;font-size:.86rem;opacity:.65;line-height:1.55">${r.ingredients.join(' · ')}</p>
+        </div>
+        <div style="background:var(--peach);border-radius:3px;padding:.7rem .9rem">
+          <div class="scheda-cell-label"><span class="lbl-icon">⚠️</span> Allergeni</div>
+          <p style="color:var(--aller);font-weight:400;font-size:.9rem;margin-top:.3rem">${r.allergeni}</p>
+        </div>
+        <div>
+          <div class="scheda-cell-label"><span class="lbl-icon">👨‍🍳</span> Procedimento</div>
+          <p style="font-size:.9rem;line-height:1.65;font-weight:300;margin-top:.3rem">${r.procedimento}</p>
+        </div>
+        <div style="background:var(--mint);border-radius:3px;padding:.8rem 1rem">
+          <div class="scheda-cell-label"><span class="lbl-icon">🩺</span> Motivazione nutrizionale</div>
+          <p style="color:var(--motiv);font-size:.88rem;line-height:1.7;font-weight:300;margin-top:.3rem">${r.motivazione}</p>
+        </div>
+        <div style="background:#FBF7F0;border-radius:3px;padding:.8rem 1rem;border-left:3px solid var(--gold)">
+          <div class="scheda-cell-label" style="color:#5D4037"><span class="lbl-icon">🍳</span> Tecniche di cottura</div>
+          <p style="color:#5D4037;font-size:.88rem;line-height:1.7;font-weight:300;margin-top:.3rem">${r.cottura}</p>
+        </div>
+        <div style="background:var(--purple-bg);border-radius:3px;padding:.8rem 1rem">
+          <div class="scheda-cell-label" style="color:var(--purple)"><span class="lbl-icon">🔬</span> Prevenzione oncologica</div>
+          <p style="color:var(--purple);font-size:.88rem;line-height:1.7;font-weight:300;margin-top:.3rem">${r.antitumorale}</p>
+        </div>
+        <div>
+          <div class="scheda-cell-label"><span class="lbl-icon">🌿</span> Stagionalità</div>
+          <p style="font-size:.88rem;font-style:italic;opacity:.7;margin-top:.2rem">${r.stagione}</p>
+        </div>
+      </div>
+      <div class="macros-row" style="border-top:1px solid var(--sky2)">
+        <div class="macro"><div class="macro-val">${r.macros.kcal}</div><span class="macro-label">kcal</span></div>
+        <div class="macro"><div class="macro-val">${r.macros.prot}g</div><span class="macro-label">proteine</span></div>
+        <div class="macro"><div class="macro-val">${r.macros.carb}g</div><span class="macro-label">carboidrati</span></div>
+        <div class="macro"><div class="macro-val">${r.macros.grassi}g</div><span class="macro-label">grassi</span></div>
+      </div>
+    </div>`;
+  document.getElementById('modal-overlay').classList.add('open');
+  document.body.style.overflow = 'hidden';
+}
+function closeModal(e) {
+  if (e && e.target!==document.getElementById('modal-overlay') && !e.target.classList.contains('modal-close')) return;
+  document.getElementById('modal-overlay').classList.remove('open');
+  document.body.style.overflow = '';
+}
+
+/* ══════════════════════════════════════════════════
+   HELPERS
+══════════════════════════════════════════════════ */
+function openEditorFor(id) {
+  currentEditId = id;
+  if (!editorOpen) toggleEditor();
+  else { buildEditorSelect(); }
+  document.getElementById('editor-recipe-select').value = id;
+  loadRecipeInEditor(id);
+  document.getElementById('editor-sidebar').scrollTop = 0;
+}
+function toggleIng(btn) {
+  const list = btn.nextElementSibling;
+  const icon = btn.querySelector('.toggle-icon');
+  list.classList.toggle('open');
+  icon.classList.toggle('open');
+}
+function switchView(view, btn) {
+  document.querySelectorAll('.view-tab').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  document.querySelectorAll('.view-panel').forEach(p => p.classList.remove('active'));
+  document.getElementById('view-'+view).classList.add('active');
+  window.scrollTo({top:0, behavior:'smooth'});
+  if (view === 'haccp') renderHaccp(currentHaccpFilter);
+}
+function filterCards(cat, btn) {
+  document.querySelectorAll('#view-cards .filter-btn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  renderCards(cat);
+}
+function filterSchede(cat, btn) {
+  document.querySelectorAll('#view-schede .filter-btn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  renderSchede(cat);
+}
+
+const extraData = [
+  {
+    "diabete": "Il piatto è privo di carboidrati raffinati e amidi: il carico glicemico è bassissimo (GL ≈ 2), rendendolo ideale per chi soffre di diabete di tipo 2. Le proteine del polpo (24 g/porzione) rallentano l'assorbimento degli eventuali zuccheri presenti. I polifenoli dei pomodorini Piennolo migliorano la sensibilità insulinica. L'aglio contiene allicina che riduce la glicemia a digiuno. Per l'ipertensione: il polpo è naturalmente ricco di potassio e magnesio, minerali che abbassano la pressione arteriosa; evitare di aggiungere sale in eccesso e preferire cottura senza dado. Per l'aterosclerosi: l'olio EVO apporta acido oleico e polifenoli (oleocantale, oleuropeina) che riducono l'ossidazione del colesterolo LDL, step fondamentale nella formazione delle placche aterosclerotiche.",
+    "adattamenti": {
+      "vegan": "Sostituire i polipetti con funghi champignon o shiitake (200 g) + ceci (150 g). La texture dei funghi richiama quella dei cefalopodi; mantenere stessa tecnica di brasatura. Verificare che il vino sia certificato vegan (senza albumina o caseina).",
+      "lattosio": "Il piatto è naturalmente privo di lattosio. Nessuna modifica necessaria.",
+      "celiaci": "Il piatto è naturalmente senza glutine. Verificare che il vino bianco non contenga tracce di glutine (raro ma possibile nei vini aromatizzati). Usare brodo homemade senza additivi.",
+      "halal": "Sostituire il vino bianco con brodo vegetale + un cucchiaino di aceto bianco. Il polipo è considerato halal nella maggior parte delle scuole islamiche (verificare con l'autorità religiosa di riferimento).",
+      "kosher": "Il polipo non è kosher. Sostituire con bocconcini di merluzzo o nasello. Utilizzare vino kosher certificato. Il piatto diventa parve (né carne né latte)."
+    },
+    "haccp": {
+      "fasi": [
+        {
+          "nome": "Ricezione polipetti freschi",
+          "pericolo": "Biologico: Vibrio parahaemolyticus, Salmonella; Chimico: metalli pesanti",
+          "ccp": true,
+          "misura": "T ≤ 4°C al ricevimento; verifica aspetto (odore marino fresco, pelle lucida); certificato fornitore; registrazione T"
+        },
+        {
+          "nome": "Stoccaggio refrigerato",
+          "pericolo": "Biologico: moltiplicazione batterica",
+          "ccp": false,
+          "misura": "Conservare a 0–2°C; consumare entro 24h; separare da altri alimenti"
+        },
+        {
+          "nome": "Pulizia e eviscerazione",
+          "pericolo": "Biologico: contaminazione crociata; Fisico: residui di becco corneo",
+          "ccp": false,
+          "misura": "Superfici sanificate; guanti monouso; eliminare completamente il becco e le sacche d'inchiostro"
+        },
+        {
+          "nome": "Cottura brasatura 40–50 min",
+          "pericolo": "Biologico: sopravvivenza patogeni",
+          "ccp": true,
+          "misura": "T interna ≥ 75°C per almeno 2 min; verificare con termometro sonda; non aprire il coperchio nei primi 30 min"
+        },
+        {
+          "nome": "Servizio",
+          "pericolo": "Biologico: ricontaminazione post-cottura",
+          "ccp": false,
+          "misura": "Servire immediatamente a T > 65°C; utensili puliti; no riutilizzo del sugo avanzato oltre 2h a T ambiente"
+        }
+      ]
+    }
+  },
+  {
+    "diabete": "Il farro semiperlato ha un indice glicemico di ~40 grazie al contenuto di beta-glucani e fibre. L'abbinamento con i fagioli abbassa ulteriormente il carico glicemico del pasto (GL ≈ 14). La fibra solubile dei fagioli forma un gel intestinale che rallenta l'assorbimento del glucosio, riducendo il picco glicemico post-prandiale fino al 30%. Per l'ipertensione: i fagioli sono ricchi di potassio (1400 mg/100 g secchi) e magnesio; i polifenoli dei pomodorini favoriscono la produzione di ossido nitrico endoteliale. Per l'aterosclerosi: le fibre solubili dei fagioli riducono l'assorbimento del colesterolo LDL; il licopene dei pomodorini inibisce l'ossidazione delle LDL, meccanismo chiave dell'aterosclerosi.",
+    "adattamenti": {
+      "vegan": "Il piatto è già completamente vegano. Sostituire eventualmente l'aceto con succo di limone.",
+      "lattosio": "Il piatto è naturalmente privo di lattosio. Nessuna modifica necessaria.",
+      "celiaci": "Il farro contiene glutine. Sostituire con riso integrale (200 g) o miglio (200 g) mantenendo la stessa tecnica. Verificare che i fagioli in scatola non contengano additivi con glutine.",
+      "halal": "Il piatto è già naturalmente halal. Verificare che l'aceto di vino sia permesso (alcune scuole lo considerano halal, altre no — sostituire con aceto di mele se necessario).",
+      "kosher": "Il piatto è parve e naturalmente kosher. Usare prodotti certificati kosher."
+    },
+    "haccp": {
+      "fasi": [
+        {
+          "nome": "Ricezione e controllo materie prime",
+          "pericolo": "Biologico: micotossine nei cereali; Chimico: pesticidi",
+          "ccp": false,
+          "misura": "Verifica etichettatura; preferire prodotti biologici certificati; conservare in luoghi asciutti"
+        },
+        {
+          "nome": "Lavaggio pomodorini",
+          "pericolo": "Biologico: Salmonella, E. coli superficiale; Chimico: residui pesticidi",
+          "ccp": true,
+          "misura": "Lavaggio sotto acqua corrente potabile ≥ 30 sec; immersione in acqua con bicarbonato (1 cucchiaino/L) per 5 min; risciacquo"
+        },
+        {
+          "nome": "Cottura farro in acqua bollente",
+          "pericolo": "Biologico: inattivazione contaminanti; Fisico: corpi estranei",
+          "ccp": true,
+          "misura": "Acqua a ebollizione ≥ 100°C; cottura 25 min; scolare con colino pulito"
+        },
+        {
+          "nome": "Raffreddamento rapido",
+          "pericolo": "Biologico: zona di pericolo T 10–60°C",
+          "ccp": true,
+          "misura": "Raffreddare entro 90 min fino a T ≤ 10°C; utilizzare abbattitore o bagno di acqua fredda; non lasciare a T ambiente"
+        },
+        {
+          "nome": "Assemblaggio e condimento a freddo",
+          "pericolo": "Biologico: contaminazione crociata",
+          "ccp": false,
+          "misura": "Superfici e utensili sanificate; olio EVO in contenitore chiuso; consumare entro 24h in frigorifero"
+        }
+      ]
+    }
+  },
+  {
+    "diabete": "L'orzo perlato ha uno dei più bassi indici glicemici tra i cereali (IG ≈ 22–29) grazie ai beta-glucani. Le fave apportano proteine e fibre che tamponano il picco glicemico. Gli Omega-3 dello sgombro migliorano la sensibilità insulinica e riducono l'infiammazione cronica tipica del DT2. Per l'ipertensione: il potassio delle fave (1090 mg/100 g) e gli Omega-3 dello sgombro abbassano la pressione sistolica; il limone di Sorrento ha proprietà vasodilatatorie. Per l'aterosclerosi: gli Omega-3 EPA e DHA riducono i trigliceridi plasmatici fino al 30%, aumentano le HDL e riducono la viscosità del sangue prevenendo la formazione di trombi.",
+    "adattamenti": {
+      "vegan": "Sostituire lo sgombro con 200 g di tofu affumicato sbriciolato o alghe nori tostate (5 g) per il sapore marino + 30 g di semi di canapa per gli Omega-3 vegetali. Aggiungere alga wakame reidratata per minerali.",
+      "lattosio": "Il piatto è naturalmente privo di lattosio. Nessuna modifica.",
+      "celiaci": "L'orzo contiene glutine. Sostituire con riso integrale o quinoa (200 g). Verificare che lo sgombro in scatola non contenga additivi con glutine.",
+      "halal": "Lo sgombro e l'orzo sono halal. Nessuna modifica necessaria.",
+      "kosher": "Lo sgombro è kosher (ha pinne e squame). Il piatto è parve. Tutti gli ingredienti devono essere certificati kosher."
+    },
+    "haccp": {
+      "fasi": [
+        {
+          "nome": "Ricezione sgombro al naturale",
+          "pericolo": "Biologico: istamina (Scombridae ad alto rischio); Chimico: mercurio",
+          "ccp": true,
+          "misura": "Verificare data scadenza e integrità della lattina; rifiutare lattine rigonfie o danneggiate; catena del freddo garantita; registro fornitori"
+        },
+        {
+          "nome": "Lavaggio fave fresche",
+          "pericolo": "Biologico: Listeria, E. coli; Chimico: pesticidi",
+          "ccp": false,
+          "misura": "Lavaggio abbondante sotto acqua corrente; sbollentare 3 min a 100°C"
+        },
+        {
+          "nome": "Sbollentatura fave",
+          "pericolo": "Biologico: inattivazione patogeni; Chimico: distruzione vicina (antigene tossico in chi ha favismo)",
+          "ccp": true,
+          "misura": "Acqua a ≥ 100°C per 3 min; raffreddare immediatamente in acqua ghiacciata; rimuovere la pellicina"
+        },
+        {
+          "nome": "Cottura orzo",
+          "pericolo": "Biologico: inattivazione contaminanti",
+          "ccp": true,
+          "misura": "Ebollizione ≥ 100°C per 30 min; T interna ≥ 85°C"
+        },
+        {
+          "nome": "Assemblaggio e conservazione",
+          "pericolo": "Biologico: ricontaminazione e moltiplicazione",
+          "ccp": false,
+          "misura": "Assemblare su superfici sanificate; consumare entro 12h; conservare a ≤ 4°C"
+        }
+      ]
+    }
+  },
+  {
+    "diabete": "La pasta di Gragnano IGP trafilata al bronzo ha una struttura proteica più compatta che rallenta la digestione degli amidi: IG ≈ 45–50. La crema di peperoni arrostiti non aggiunge zuccheri semplici. La vitamina C dei peperoni migliora la funzione delle cellule beta pancreatiche. Per l'ipertensione: il potassio dei peperoni (211 mg/100 g) e i flavonoidi del basilico esercitano un effetto vasodilatorio; l'olio EVO riduce la pressione sistolica. Per l'aterosclerosi: i carotenoidi dei peperoni (betacarotene, luteina) riducono l'ossidazione delle LDL; il piatto è privo di grassi saturi.",
+    "adattamenti": {
+      "vegan": "Il piatto è già vegano se si omette il parmigiano o si sostituisce con lievito alimentare (2 cucchiai) o parmigiano vegano a base di anacardi.",
+      "lattosio": "Omettere il parmigiano o sostituire con parmigiano stagionato ≥24 mesi (naturalmente privo di lattosio) o con lievito alimentare in scaglie.",
+      "celiaci": "Sostituire la pasta con pasta di riso, mais o grano saraceno (stessa grammatura). Verificare certificazione gluten-free. La crema di peperoni è naturalmente senza glutine.",
+      "halal": "Il piatto è naturalmente halal. Verificare che la pasta non contenga additivi di origine animale non halal.",
+      "kosher": "Il piatto è parve senza parmigiano, lattisinio (milchig) con il parmigiano. Tutti gli ingredienti devono essere kosher certificati."
+    },
+    "haccp": {
+      "fasi": [
+        {
+          "nome": "Ricezione e controllo peperoni freschi",
+          "pericolo": "Biologico: muffe, Listeria; Chimico: pesticidi organofosforati",
+          "ccp": false,
+          "misura": "Selezionare peperoni sodi, senza ammaccature; preferire prodotti biologici; lavaggio accurato"
+        },
+        {
+          "nome": "Lavaggio peperoni",
+          "pericolo": "Biologico: E. coli, Salmonella; Chimico: residui pesticidi",
+          "ccp": true,
+          "misura": "Lavaggio sotto acqua corrente ≥ 30 sec; immersione in acqua con bicarbonato 5 min; risciacquo abbondante"
+        },
+        {
+          "nome": "Arrostimento peperoni (220°C)",
+          "pericolo": "Chimico: formazione acrilammide se eccessivamente carbonizzati",
+          "ccp": true,
+          "misura": "T forno ≤ 230°C; non carbonizzare completamente; eliminare le parti annerite prima di frullare; tempo max 20 min"
+        },
+        {
+          "nome": "Cottura pasta al dente",
+          "pericolo": "Fisico: corpi estranei; Biologico: recontaminazione",
+          "ccp": false,
+          "misura": "Ispezionare visivamente la pasta cruda; acqua a forte ebollizione; colino pulito per scolare"
+        },
+        {
+          "nome": "Mantecatura e servizio",
+          "pericolo": "Biologico: raffreddamento in zona di rischio",
+          "ccp": false,
+          "misura": "Servire immediatamente a T > 65°C; non mantenere in caldo oltre 2h"
+        }
+      ]
+    }
+  },
+  {
+    "diabete": "Le lenticchie rosse hanno uno degli indici glicemici più bassi tra i legumi (IG ≈ 21–26); la combinazione con le proteine della spigola crea un pasto a bassissimo carico glicemico (GL ≈ 8). Il rosmarino contiene acido rosmarinico che inibisce l'enzima alfa-glucosidasi (stesso meccanismo di farmaci antidiabetici come l'acarbosio). Per l'ipertensione: la spigola è a basso contenuto di sodio; il potassio delle lenticchie (955 mg/100 g) bilancia il sodio intracellulare; il rosmarino ha proprietà vasodilatatorie. Per l'aterosclerosi: gli acidi grassi insaturi della spigola proteggono le arterie; le lenticchie abbassano il colesterolo totale e LDL grazie alle fibre solubili e ai fitosteroli.",
+    "adattamenti": {
+      "vegan": "Sostituire la spigola con 200 g di tofu compatto dorato in padella o con polpette di lenticchie. Aggiungere alga nori sbriciolata per il sapore marino.",
+      "lattosio": "Il piatto è naturalmente privo di lattosio. Nessuna modifica.",
+      "celiaci": "Il piatto è naturalmente senza glutine. Verificare che il brodo vegetale non contenga additivi con glutine (usare brodo homemade o certificato GF).",
+      "halal": "La spigola è halal. Il brodo vegetale non deve contenere alcol o additivi non permessi.",
+      "kosher": "La spigola ha pinne e squame — è kosher. Il piatto è parve. Non servire con latticini nello stesso pasto."
+    },
+    "haccp": {
+      "fasi": [
+        {
+          "nome": "Ricezione filetti di spigola freschi",
+          "pericolo": "Biologico: Listeria monocytogenes, Anisakis simplex; Chimico: PCB, diossine",
+          "ccp": true,
+          "misura": "T ricezione ≤ 2°C; verifica aspetto (carne bianca e compatta, odore marino); ispezione visiva per Anisakis; certificato sanitario fornitore; registro"
+        },
+        {
+          "nome": "Stoccaggio refrigerato",
+          "pericolo": "Biologico: moltiplicazione batterica rapida nel pesce",
+          "ccp": true,
+          "misura": "T ≤ 2°C; consumare entro 24h; separare da carne e verdure crude; copertura con pellicola"
+        },
+        {
+          "nome": "Cottura searing in padella",
+          "pericolo": "Biologico: sopravvivenza Anisakis e patogeni",
+          "ccp": true,
+          "misura": "T interna ≥ 63°C per 15 sec (per Anisakis: ≥ 60°C per 1 min); usare termometro sonda; padella antiaderente pre-riscaldata"
+        },
+        {
+          "nome": "Cottura lenticchie",
+          "pericolo": "Biologico: residui di lectine tossiche se cottura insufficiente",
+          "ccp": true,
+          "misura": "Ebollizione ≥ 100°C per ≥ 20 min; cottura completa obbligatoria"
+        },
+        {
+          "nome": "Impiattamento e servizio",
+          "pericolo": "Biologico: ricontaminazione; Fisico: lische residue",
+          "ccp": false,
+          "misura": "Verificare assenza lische prima di servire; piatti a T > 60°C; servire entro 15 min dalla cottura"
+        }
+      ]
+    }
+  },
+  {
+    "diabete": "Preferire riso integrale (IG ≈ 50 vs parboiled IG ≈ 64). Il raffreddamento del riso aumenta la quota di amido resistente riducendo la risposta glicemica. Il tonno apporta proteine (24 g/100 g) che rallentano lo svuotamento gastrico; gli Omega-3 riducono i trigliceridi elevati, frequenti nel DT2. Per l'ipertensione: le olive di Gaeta DOP sono ricche di acido oleico e polifenoli antiossidanti; sciacquare le olive in salamoia per ridurre il sodio; il tonno al naturale ha meno sodio del tonno sott'olio. Per l'aterosclerosi: l'acido oleico delle olive aumenta le HDL e riduce le LDL ossidate; l'origano contiene carvacrolo che inibisce l'aggregazione piastrinica.",
+    "adattamenti": {
+      "vegan": "Sostituire il tonno con 200 g di ceci al naturale o jackfruit in salamoia + 1 cucchiaio di alga nori sbriciolata per il sapore marino. Aggiungere semi di lino macinati per gli Omega-3.",
+      "lattosio": "Il piatto è naturalmente privo di lattosio. Nessuna modifica.",
+      "celiaci": "Il piatto è naturalmente senza glutine. Verificare la certificazione GF del tonno in scatola e del mais.",
+      "halal": "Il tonno è halal. Verificare che le olive non contengano vino nella salamoia. Tutti gli altri ingredienti sono naturalmente halal.",
+      "kosher": "Il tonno è kosher (ha pinne e squame). Il piatto è parve. Verificare la certificazione kosher del tonno in scatola. Le olive devono essere certificate kosher."
+    },
+    "haccp": {
+      "fasi": [
+        {
+          "nome": "Ricezione tonno in scatola",
+          "pericolo": "Chimico: istamina (Scombridae); Biologico: Clostridium botulinum (lattine danneggiate)",
+          "ccp": true,
+          "misura": "Rifiutare lattine rigonfie, arrugginite o con ammaccature profonde; verificare data scadenza; controllo integrità del sigillo; registrazione lotto"
+        },
+        {
+          "nome": "Cottura e raffreddamento riso",
+          "pericolo": "Biologico: Bacillus cereus (spore termofile che sopravvivono alla cottura)",
+          "ccp": true,
+          "misura": "Raffreddamento rapido entro 90 min a T ≤ 10°C usando abbattitore o bagno ghiacciato; non lasciare a T ambiente; conservare in frigorifero a ≤ 4°C"
+        },
+        {
+          "nome": "Lavaggio e taglio verdure crude",
+          "pericolo": "Biologico: contaminazione superficiale da batteri e parassiti",
+          "ccp": false,
+          "misura": "Lavaggio abbondante pomodorini e cetriolini; tagliere dedicato; coltello sanificato"
+        },
+        {
+          "nome": "Assemblaggio insalata fredda",
+          "pericolo": "Biologico: moltiplicazione batterica se T ambiente elevata",
+          "ccp": false,
+          "misura": "Assemblare con ingredienti tutti ≤ 10°C; consumare entro 2h a T ambiente o entro 24h in frigorifero"
+        },
+        {
+          "nome": "Conservazione e servizio",
+          "pericolo": "Biologico: zona di pericolo termica",
+          "ccp": true,
+          "misura": "Conservare a ≤ 4°C coperto con pellicola; non esporre a T ambiente oltre 2h"
+        }
+      ]
+    }
+  },
+  {
+    "diabete": "L'orzo integrale ha l'IG più basso tra i cereali (IG ≈ 22) grazie all'alto contenuto di beta-glucani (4–8 g/100 g). L'EFSA riconosce il claim 'i beta-glucani dell'orzo contribuiscono al mantenimento di normali livelli di glucosio nel sangue'. Per l'ipertensione: gli Omega-3 delle alici di Cetara abbassano la pressione sistolica; le alici sono ricche di peptidi bioattivi con attività inibitoria dell'ACE (simile ai farmaci anti-ipertensivi). Attenzione al sodio residuo delle alici: dissalare accuratamente. Per l'aterosclerosi: i beta-glucani dell'orzo riducono il colesterolo LDL (documentato da meta-analisi cliniche); gli Omega-3 riducono i trigliceridi e la viscosità ematica.",
+    "adattamenti": {
+      "vegan": "Omettere le alici e sostituire con 2 cucchiai di pasta di miso + alga kombu (umami simile alle alici) + 20 g di capperi dissalati. Usare brodo di alghe (dashi vegetale) per profondità di sapore.",
+      "lattosio": "Il piatto è naturalmente privo di lattosio. Nessuna modifica.",
+      "celiaci": "L'orzo contiene glutine. Sostituire con riso integrale o grano saraceno (stessa tecnica del risotto). Verificare GF di tutti gli ingredienti.",
+      "halal": "Le alici sono halal. Verificare assenza di additivi non halal nel brodo. La dissalatura è importante per ridurre il sodio.",
+      "kosher": "Le alici sono kosher (hanno pinne e squame). Il piatto è parve. Tutti gli ingredienti devono essere certificati kosher."
+    },
+    "haccp": {
+      "fasi": [
+        {
+          "nome": "Ricezione alici sotto sale",
+          "pericolo": "Biologico: Listeria, Clostridium; Chimico: eccesso di sodio; istamina",
+          "ccp": true,
+          "misura": "Verifica aspetto (carne soda, odore tipico); verifica T stoccaggio fornitore; integrità contenitore; registro fornitore certificato"
+        },
+        {
+          "nome": "Dissalatura alici",
+          "pericolo": "Biologico: Listeria monocytogenes (può sopravvivere nel sale)",
+          "ccp": true,
+          "misura": "Immersione in acqua fredda (≤ 10°C) per 30 min cambiando l'acqua 2 volte; non dissalare a T ambiente; sfilettare con guanti"
+        },
+        {
+          "nome": "Ammollo orzo integrale (4h)",
+          "pericolo": "Biologico: moltiplicazione batterica nell'acqua di ammollo",
+          "ccp": true,
+          "misura": "Ammollo in acqua fredda in frigorifero (≤ 4°C); non ammollare a T ambiente per più di 1h; usare acqua potabile"
+        },
+        {
+          "nome": "Cottura orzotto (tecnica risotto)",
+          "pericolo": "Biologico: sopravvivenza spore di Bacillus cereus",
+          "ccp": true,
+          "misura": "Mantenere ebollizione leggera costante; T ≥ 85°C per tutta la cottura; non aggiungere brodo freddo in quantità eccessive"
+        },
+        {
+          "nome": "Aggiunta alici e servizio",
+          "pericolo": "Biologico: ricontaminazione post-cottura; istamina nelle alici se troppo scaldate",
+          "ccp": false,
+          "misura": "Aggiungere le alici fuori fuoco; servire immediatamente; non riscaldare il piatto con le alici già inserite"
+        }
+      ]
+    }
+  },
+  {
+    "diabete": "La pasta integrale ha un IG ≈ 40–45 e i piselli apportano 6 g di proteine e 5 g di fibre per 100 g. L'abbinamento cereale integrale + legume crea un pasto a basso GL (≈ 18). La menta fresca contiene acido ursolico con documentata attività di miglioramento della sensibilità insulinica. Per l'ipertensione: i piselli sono ricchi di potassio (244 mg/100 g), magnesio e vitamina K; la cipolla contiene quercetina con effetto antipertensivo documentato in studi clinici randomizzati. Per l'aterosclerosi: le fibre solubili (pectina) dei piselli riducono il colesterolo LDL; la pasta integrale apporta vitamina E e steroli vegetali con effetto protettivo sull'endotelio vascolare.",
+    "adattamenti": {
+      "vegan": "Il piatto è già vegano se si omette il parmigiano o si sostituisce con lievito alimentare in scaglie (2 cucchiai). Opzionale: aggiungere 50 g di noci di anacardi frullate come alternativa cremosa.",
+      "lattosio": "Omettere il parmigiano o sostituire con parmigiano stagionato ≥ 24 mesi (naturalmente privo di lattosio per fermentazione completa) o con lievito alimentare.",
+      "celiaci": "Sostituire la pasta integrale con pasta di riso, mais o legumi GF. La crema di piselli è naturalmente GF. Verificare certificazione GF di tutti i prodotti.",
+      "halal": "Il piatto è naturalmente halal. Verificare che la pasta non contenga additivi di origine animale non permessi.",
+      "kosher": "Il piatto è parve senza parmigiano, lattisinio (milchig) con il parmigiano. Tutti gli ingredienti devono essere kosher certificati."
+    },
+    "haccp": {
+      "fasi": [
+        {
+          "nome": "Ricezione piselli freschi o surgelati",
+          "pericolo": "Biologico: muffe e aflatossine; Fisico: corpi estranei (surgelati)",
+          "ccp": false,
+          "misura": "Piselli freschi: controllare colore verde brillante e consistenza; piselli surgelati: catena del freddo intatta (T ≤ -18°C)"
+        },
+        {
+          "nome": "Scongelamento (se surgelati)",
+          "pericolo": "Biologico: Listeria, zona di pericolo termico",
+          "ccp": true,
+          "misura": "Scongelare in frigorifero a ≤ 4°C o direttamente in acqua bollente; mai a T ambiente; usare entro 24h dallo scongelamento"
+        },
+        {
+          "nome": "Soffritto cipolla",
+          "pericolo": "Chimico: produzione di acroleina se la cipolla brucia",
+          "ccp": false,
+          "misura": "Fuoco moderato; aggiungere olio a freddo; non superare il punto di fumo dell'olio EVO (210°C); cipolla deve appassire non annerire"
+        },
+        {
+          "nome": "Cottura piselli in brodo",
+          "pericolo": "Biologico: inattivazione contaminanti; Chimico: ossidazione vitamina C",
+          "ccp": true,
+          "misura": "T ≥ 85°C per 10–12 min; non prolungare oltre 15 min per preservare vitamina C e colore"
+        },
+        {
+          "nome": "Mantecatura e servizio",
+          "pericolo": "Biologico: zona di rischio termico se si mantiene caldo a lungo",
+          "ccp": false,
+          "misura": "Servire immediatamente a T > 65°C; non mantenere in caldo oltre 2h"
+        }
+      ]
+    }
+  },
+  {
+    "diabete": "I carciofi contengono inulina, una fibra prebiotica che non viene digerita e non alza la glicemia. La cinarina dei carciofi stimola la produzione di bile favorendo il metabolismo del glucosio epatico; i broccoli contengono sulforafano che migliora la sensibilità insulinica in studi clinici preliminari. Per l'ipertensione: la verza è ricca di vitamina K e potassio; i broccoli apportano glucorafanino con proprietà vasodilatatoria; i carciofi contengono silimarina con effetto anti-infiammatorio che indirettamente riduce la pressione. Per l'aterosclerosi: la verza e i broccoli apportano fibra solubile e steroli vegetali che riducono l'assorbimento del colesterolo intestinale; i polifenoli dei carciofi inibiscono la perossidazione lipidica delle LDL.",
+    "adattamenti": {
+      "vegan": "Il piatto è già completamente vegano. Per aumentare il contenuto proteico aggiungere 100 g di legumi misti (ceci o fagioli) insieme alle verdure.",
+      "lattosio": "Il piatto è naturalmente privo di lattosio. Nessuna modifica.",
+      "celiaci": "Il piatto è naturalmente senza glutine. Verificare che il brodo vegetale non contenga glutine (usare brodo homemade o certificato GF). Il riso carnaroli è naturalmente GF.",
+      "halal": "Il piatto è naturalmente halal. Verificare il brodo vegetale.",
+      "kosher": "Il piatto è parve e naturalmente kosher. Tutti gli ingredienti devono essere certificati kosher. Usare brodo vegetale kosher."
+    },
+    "haccp": {
+      "fasi": [
+        {
+          "nome": "Ricezione e lavaggio carciofi, broccoli, verza",
+          "pericolo": "Biologico: Listeria (carciofi con foglie esterne), E. coli; Fisico: insetti, terra",
+          "ccp": false,
+          "misura": "Eliminare foglie esterne danneggiate; lavaggio accurato in acqua corrente; immersione in acqua acidulata per carciofi"
+        },
+        {
+          "nome": "Pulizia e taglio verdure",
+          "pericolo": "Biologico: contaminazione crociata; Fisico: residui di terriccio",
+          "ccp": false,
+          "misura": "Tagliere dedicato per verdure; coltelli sanificati; guanti monouso per carciofi"
+        },
+        {
+          "nome": "Saltatura verdure in padella (stir-fry)",
+          "pericolo": "Chimico: degradazione glucosinolati con calore eccessivo; acrilammide",
+          "ccp": true,
+          "misura": "Fuoco vivace ma breve (3–5 min max); olio EVO a T ≤ 180°C; le verdure devono rimanere croccanti e di colore brillante"
+        },
+        {
+          "nome": "Tostatura e cottura riso",
+          "pericolo": "Biologico: Bacillus cereus (spore che sopravvivono alla cottura)",
+          "ccp": true,
+          "misura": "Consumare entro 2h dalla cottura; se si conserva, raffreddare rapidamente a ≤ 10°C entro 90 min; non riscaldare più di una volta"
+        },
+        {
+          "nome": "Servizio",
+          "pericolo": "Biologico: mantenimento in caldo oltre i limiti",
+          "ccp": false,
+          "misura": "Servire immediatamente a T ≥ 65°C; non mantenere in caldo oltre 2h"
+        }
+      ]
+    }
+  },
+  {
+    "diabete": "Il farro semi-perlato ha IG ≈ 40. Il raffreddamento del farro aumenta l'amido resistente migliorando ulteriormente la risposta glicemica; le carote cotte al dente hanno IG inferiore alle carote bollite (al dente IG ≈ 35, bollite IG ≈ 85). Il petto di pollo non alza la glicemia. Per l'ipertensione: il potassio delle zucchine (264 mg/100 g) e delle carote (320 mg/100 g) bilancia l'effetto pressorio del sodio; il limone nel condimento sostituisce parzialmente il sale. Per l'aterosclerosi: il pollo alla griglia è privo di grassi saturi in eccesso; l'olio EVO nel condimento a crudo apporta acidi grassi monoinsaturi anti-aterogeni; il licopene dei pomodorini protegge le LDL dall'ossidazione.",
+    "adattamenti": {
+      "vegan": "Sostituire il petto di pollo con 250 g di tempeh o seitan alla griglia (stessa tecnica, stesso tempo di cottura). Aggiungere 1 cucchiaio di semi di zucca per Omega-3 e zinco.",
+      "lattosio": "Il piatto è naturalmente privo di lattosio. Nessuna modifica.",
+      "celiaci": "Il farro contiene glutine. Sostituire con riso integrale (200 g) o con quinoa (200 g). Verificare GF del brodo se utilizzato.",
+      "halal": "Il pollo deve essere halal certificato (macellazione secondo rito islamico). Tutti gli altri ingredienti sono naturalmente halal.",
+      "kosher": "Il pollo deve essere kosher certificato (shechita). È carne (fleishig): non servire con latticini nello stesso pasto. Utensili separati da quelli per latticini."
+    },
+    "haccp": {
+      "fasi": [
+        {
+          "nome": "Ricezione petto di pollo fresco",
+          "pericolo": "Biologico: Salmonella, Campylobacter (ad alto rischio nel pollame); Fisico: ossa/cartilagine residue",
+          "ccp": true,
+          "misura": "T ricezione ≤ 4°C; verifica aspetto (carne rosea, assenza odori anomali); certificato sanitario; conservare separato da verdure"
+        },
+        {
+          "nome": "Stoccaggio refrigerato",
+          "pericolo": "Biologico: moltiplicazione rapida di Salmonella e Campylobacter",
+          "ccp": true,
+          "misura": "T ≤ 4°C; ripiano più basso del frigorifero; consumare entro 24h; contenitore chiuso"
+        },
+        {
+          "nome": "Cottura pollo alla griglia",
+          "pericolo": "Biologico: sopravvivenza Salmonella/Campylobacter; Chimico: ammine eterocicliche (carbonizzazione)",
+          "ccp": true,
+          "misura": "T interna ≥ 75°C per ≥ 2 min (verificare con sonda); non carbonizzare; eliminare parti annerite; griglia pulita prima dell'uso"
+        },
+        {
+          "nome": "Raffreddamento farro",
+          "pericolo": "Biologico: Bacillus cereus",
+          "ccp": true,
+          "misura": "Raffreddare a ≤ 10°C entro 90 min; non accumulare il farro caldo in contenitori chiusi; usare abbattitore o disperdere su teglia"
+        },
+        {
+          "nome": "Assemblaggio e servizio",
+          "pericolo": "Biologico: contaminazione crociata da utensili usati sul pollo crudo",
+          "ccp": false,
+          "misura": "Utensili separati per pollo crudo e cotto; lavare mani dopo contatto con pollo crudo; consumare entro 24h se refrigerato"
+        }
+      ]
+    }
+  },
+  {
+    "diabete": "La pasta di Gragnano IGP ha IG ≈ 45–50 grazie alla trafilatura al bronzo. Cuocere rigorosamente al dente riduce ulteriormente l'IG. Il limonene e i flavonoidi del limone di Sorrento modulano positivamente il metabolismo glucidico; il timo contiene timolo con attività anti-glicemica. Per l'ipertensione: il limone è ricco di vitamina C, flavonoidi e potassio; ridurre ulteriormente il burro a 30 g per 4 porzioni e privilegiare l'olio EVO. Il limone può parzialmente sostituire il sale. Per l'aterosclerosi: limitare il burro e privilegiare l'olio EVO (acido oleico anti-aterogeno); il limonene riduce la sintesi epatica del colesterolo inibendo la HMG-CoA reduttasi.",
+    "adattamenti": {
+      "vegan": "Sostituire il burro con burro vegetale di cocco o margarina non idrogenata (stessa quantità); sostituire il parmigiano con lievito alimentare (2 cucchiai). Il limone e le erbe sono già vegani.",
+      "lattosio": "Sostituire il burro con olio EVO (30 g ≈ 3 cucchiai); sostituire il parmigiano con parmigiano senza lattosio (stagionato ≥24 mesi) o con lievito alimentare.",
+      "celiaci": "Sostituire le linguine con linguine di riso o mais (stessa grammatura). La salsa al limone e burro è naturalmente GF. Verificare certificazione GF.",
+      "halal": "Il burro è halal se di origine bovina non mista ad altri grassi. Il parmigiano è halal se prodotto senza caglio suino. Tutti gli altri ingredienti sono halal.",
+      "kosher": "Il piatto è lattisinio (milchig) con burro e parmigiano. Non servire con carne. Il burro deve essere kosher certificato."
+    },
+    "haccp": {
+      "fasi": [
+        {
+          "nome": "Ricezione e conservazione burro",
+          "pericolo": "Biologico: Listeria monocytogenes; Chimico: irrancidimento",
+          "ccp": false,
+          "misura": "Conservare a ≤ 4°C; verificare data scadenza; usare entro 5 giorni dall'apertura"
+        },
+        {
+          "nome": "Preparazione erbe aromatiche fresche",
+          "pericolo": "Biologico: E. coli, Salmonella",
+          "ccp": false,
+          "misura": "Lavaggio accurato sotto acqua corrente; asciugare con carta assorbente pulita"
+        },
+        {
+          "nome": "Scioglimento burro con erbe (fuoco basso)",
+          "pericolo": "Chimico: produzione di acroleina e aldeidi tossiche se il burro brucia",
+          "ccp": true,
+          "misura": "T ≤ 130°C (punto di fumo del burro); fuoco bassissimo; colore deve rimanere giallo paglierino (non marrone)"
+        },
+        {
+          "nome": "Cottura linguine al dente",
+          "pericolo": "Fisico: corpi estranei; Biologico: recontaminazione",
+          "ccp": false,
+          "misura": "Acqua a forte ebollizione; inspezionare visivamente la pasta; colino e contenitori puliti"
+        },
+        {
+          "nome": "Aggiunta limone e servizio",
+          "pericolo": "Biologico: raffreddamento rapido fuori dalla zona sicura",
+          "ccp": false,
+          "misura": "Servire immediatamente; piatti pre-riscaldati; il limone aggiunto fuori fuoco mantiene vitamina C e limonene intatti"
+        }
+      ]
+    }
+  },
+  {
+    "diabete": "Le lenticchie verdi hanno IG ≈ 29 e GL ≈ 5 per porzione. Il carciofo contiene inulina che non alza la glicemia. La cicoria contiene acido cicorico che migliora la sensibilità insulinica. È probabilmente il piatto con il migliore profilo antiglicemico dell'intera selezione; le fibre solubili dei tre vegetali principali (lenticchie, carciofi, cicoria) agiscono sinergicamente. Per l'ipertensione: il potassio è altissimo (lenticchie: 955 mg/100 g; carciofi: 370 mg/100 g; cicoria: 420 mg/100 g); il piatto è ideale per chi segue una dieta DASH per l'ipertensione. Per l'aterosclerosi: le lenticchie riducono colesterolo totale e LDL; i carciofi aumentano le HDL; la cicoria contiene beta-sitosterolo che compete con il colesterolo nell'assorbimento intestinale.",
+    "adattamenti": {
+      "vegan": "Il piatto è già completamente vegano. Assicurarsi che il brodo vegetale non contenga estratto di carne. I crostini integrali devono essere vegan.",
+      "lattosio": "Il piatto è naturalmente privo di lattosio. Nessuna modifica.",
+      "celiaci": "Sostituire i crostini di pane integrale con crostini di pane di riso, mais o grano saraceno certificato GF. La zuppa di lenticchie è naturalmente GF.",
+      "halal": "Il piatto è naturalmente halal. Verificare il brodo vegetale e il pane integrale.",
+      "kosher": "Il piatto è parve e naturalmente kosher. Usare brodo vegetale kosher. Il pane integrale deve essere kosher certificato."
+    },
+    "haccp": {
+      "fasi": [
+        {
+          "nome": "Ricezione e selezione lenticchie secche",
+          "pericolo": "Fisico: pietre, sassolini; Biologico: muffe, aflatossine",
+          "ccp": true,
+          "misura": "Selezionare visivamente le lenticchie eliminando i sassolini; lavare più volte in acqua; verificare assenza di muffe; ammollo 30 min in frigorifero"
+        },
+        {
+          "nome": "Pulizia carciofi",
+          "pericolo": "Biologico: Listeria tra le foglie esterne; Fisico: residui di foglie dure",
+          "ccp": false,
+          "misura": "Eliminare foglie esterne dure; tagliare la base; immersione in acqua acidulata con limone"
+        },
+        {
+          "nome": "Sbollentatura cicoria selvatica",
+          "pericolo": "Biologico: batteri superficiali; Chimico: riduzione ossalati",
+          "ccp": true,
+          "misura": "Acqua a ebollizione per 2–3 min; raffreddare immediatamente in acqua ghiacciata; strizzare per eliminare acqua di cottura amara e ossalati"
+        },
+        {
+          "nome": "Cottura zuppa lenta (35–40 min)",
+          "pericolo": "Biologico: sopravvivenza lectine nei legumi; inattivazione patogeni",
+          "ccp": true,
+          "misura": "Ebollizione leggera costante ≥ 95°C per ≥ 35 min; verificare consistenza delle lenticchie"
+        },
+        {
+          "nome": "Tostatura crostini e servizio",
+          "pericolo": "Chimico: formazione di acrilammide nel pane tostato eccessivamente",
+          "ccp": true,
+          "misura": "Tostatura a T ≤ 180°C; colore dorato non bruno-scuro; servire zuppa a T ≥ 75°C; olio EVO aggiunto a crudo"
+        }
+      ]
+    }
+  },
+  {
+    "diabete": "La pasta integrale ha IG ≈ 40–45. Le zucchine sono ipoglicemizzanti (IG ≈ 15). Le cucurbitacine delle zucchine mostrano in studi in vitro un miglioramento della sensibilità insulinica; attenzione alla quantità di provolone del Monaco (grassi saturi) che in eccesso peggiora la resistenza insulinica. Per l'ipertensione: le zucchine sono ricche di potassio (264 mg/100 g) e povere di sodio; limitare l'aggiunta di sale; il provolone contiene sodio — ridurre a 30 g per 4 porzioni. L'aglio contiene allicina con provato effetto antipertensivo. Per l'aterosclerosi: la pasta integrale apporta steroli vegetali; l'aglio riduce la sintesi del colesterolo epatico e l'aggregazione piastrinica; il basilico contribuisce con eugenolo con proprietà anti-infiammatorie.",
+    "adattamenti": {
+      "vegan": "Omettere provolone del Monaco e parmigiano. Sostituire con: 3 cucchiai di lievito alimentare in scaglie + 30 g di anacardi tostati e frullati per la cremosità.",
+      "lattosio": "Sostituire provolone del Monaco con formaggio stagionato senza lattosio (stagionatura ≥12 mesi) o con parmigiano stagionato ≥24 mesi, spesso tollerato anche da intolleranti.",
+      "celiaci": "Sostituire la pasta integrale con pasta integrale di riso, mais o legumi GF. Usare padella dedicata non contaminata da glutine per la frittura. Verificare GF di tutti i prodotti.",
+      "halal": "Il provolone del Monaco deve essere prodotto con caglio halal (vegetale o microbico). Il parmigiano reggiano DOP usa caglio animale bovino — verificare la certificazione specifica. L'olio di arachide è halal.",
+      "kosher": "Il piatto è lattisinio (milchig) con i formaggi. Non servire con carne. Il provolone e il parmigiano devono essere prodotti con caglio kosher. La pasta deve essere kosher certificata."
+    },
+    "haccp": {
+      "fasi": [
+        {
+          "nome": "Ricezione zucchine fresche",
+          "pericolo": "Biologico: Listeria (ortaggio a contatto con suolo); Fisico: terra, insetti",
+          "ccp": false,
+          "misura": "Selezionare zucchine sode e senza ammaccature; lavaggio con acqua corrente e sfregamento; non usare zucchine ammuffite"
+        },
+        {
+          "nome": "Frittura zucchine (olio arachide 180°C)",
+          "pericolo": "Chimico: degradazione olio con produzione di composti tossici se l'olio supera il punto di fumo o viene riutilizzato troppo; acrilammide",
+          "ccp": true,
+          "misura": "T olio ≤ 180°C; non riutilizzare l'olio più di 3 volte; cambiare olio se si scurisce o fuma; frittura a piccole quantità; scolare immediatamente su carta assorbente"
+        },
+        {
+          "nome": "Gestione olio esausto",
+          "pericolo": "Chimico: olio fortemente degradato",
+          "ccp": false,
+          "misura": "Smaltire l'olio esausto correttamente; non miscelare olio fresco con olio esausto"
+        },
+        {
+          "nome": "Cottura pasta integrale al dente",
+          "pericolo": "Fisico: corpi estranei; Biologico: recontaminazione",
+          "ccp": false,
+          "misura": "Inspezionare pasta cruda; acqua a forte ebollizione; non sovraccaricare la pentola"
+        },
+        {
+          "nome": "Mantecatura fuori fuoco con formaggi",
+          "pericolo": "Biologico: Listeria nel formaggio; T di servizio insufficiente",
+          "ccp": true,
+          "misura": "Il calore residuo della pasta (≥ 70°C) è sufficiente per fondere il provolone; servire immediatamente; non mantenere in caldo oltre 30 min"
+        }
+      ]
+    }
+  }
+];
+
+/* ══ RENDER HACCP ══════════════════════════════════════ */
+let currentHaccpFilter = 'all';
+function renderHaccp(filter) {
+  currentHaccpFilter = filter;
+  const grid = document.getElementById('haccp-grid');
+  grid.innerHTML = '';
+  data.filter(r => filter==='all' || r.cat===filter).forEach((r,i) => {
+    const ex = extraData[r.id] || {};
+    const haccp = ex.haccp || {fasi:[]};
+    const adapt = ex.adattamenti || {};
+    const diabete = ex.diabete || '';
+
+    const flowHtml = haccp.fasi.map((f,fi) => `
+      <div class="haccp-step">
+        <div class="haccp-step-arrow">
+          ${fi>0?'<div class="haccp-arrow-line"></div><div class="haccp-arrow-head">▼</div>':'<div style="height:8px"></div>'}
+        </div>
+        <div class="haccp-box ${f.ccp?'is-ccp':''}">
+          <div class="haccp-box-head">
+            <span class="haccp-step-name">${fi+1}. ${f.nome}</span>
+            <span class="${f.ccp?'haccp-ccp-badge':'haccp-ok-badge'}">${f.ccp?'CCP':'CP'}</span>
+          </div>
+          <div class="haccp-box-body">
+            <div class="haccp-field"><label>⚠ Pericolo</label><p>${f.pericolo}</p></div>
+            <div class="haccp-field"><label>✓ Misura di controllo</label><p>${f.misura}</p></div>
+          </div>
+        </div>
+      </div>`).join('');
+
+    const adaptHtml = Object.entries(adapt).map(([k,v]) => `
+      <div class="adapt-card adapt-${k}">
+        <span class="adapt-label">${{vegan:'🌱 Vegan',lattosio:'🥛 Intolleranti lattosio',celiaci:'🌾 Celiaci',halal:'☪ Halal',kosher:'✡ Kosher'}[k]||k}</span>
+        <p class="adapt-text">${v}</p>
+      </div>`).join('');
+
+    const s = document.createElement('div');
+    s.className = 'scheda';
+    s.style.animationDelay = `${i*.07}s`;
+    s.innerHTML = `
+      <div class="scheda-header">
+        <div class="scheda-num">${r.numero}</div>
+        <div class="scheda-title-block">
+          <div class="scheda-title">${r.title}</div>
+          ${r.chef?`<div class="scheda-chef">Chef / Autore: ${r.chef}</div>`:''}
+        </div>
+        <div class="tags" style="margin:0;flex-shrink:0">
+          ${r.tags.map(([l,c])=>`<span class="tag ${c}">${l}</span>`).join('')}
+        </div>
+      </div>
+      <div class="scheda-body">
+        <div class="scheda-cell diabete full">
+          <div class="scheda-cell-label" style="color:var(--coral)"><span class="lbl-icon">💊</span> Prevenzione Diabete T2, Ipertensione &amp; Aterosclerosi</div>
+          <div class="scheda-cell-content">${diabete}</div>
+        </div>
+        <div class="scheda-cell full" style="background:#F8F9FA">
+          <div class="scheda-cell-label"><span class="lbl-icon">🍽</span> Adattamenti per esigenze dietetiche e religiose</div>
+          <div class="adapt-grid">${adaptHtml}</div>
+        </div>
+        <div class="scheda-cell full">
+          <div class="scheda-cell-label" style="color:var(--haccp-head)"><span class="lbl-icon">🔐</span> Piano HACCP — Diagramma di flusso con CCP</div>
+          <div class="haccp-legend">
+            <span><span class="haccp-ccp-badge">CCP</span> Punto Critico di Controllo</span>
+            <span><span class="haccp-ok-badge">CP</span> Punto di Controllo</span>
+          </div>
+          <div class="haccp-flow" style="margin-top:.8rem">${flowHtml}</div>
+        </div>
+      </div>
+    `;
+    grid.appendChild(s);
+  });
+}
+
+function filterHaccp(cat, btn) {
+  document.querySelectorAll('#view-haccp .filter-btn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  renderHaccp(cat);
+}
+
+
+/* ══ EXTEND renderSchede to include diabete & adattamenti ═ */
+function renderSchede(filter) {
+  currentSchedeFilter = filter;
+  const grid = document.getElementById('schede-grid');
+  grid.innerHTML = '';
+  data.filter(r => filter==='all' || r.cat===filter).forEach((r,i) => {
+    const ex = extraData[r.id] || {};
+    const diabete = ex.diabete || '';
+    const adapt = ex.adattamenti || {};
+    const chipsHtml = r.ingChips.map(c => `<span class="ing-chip ${c.c}">${c.t}</span>`).join('');
+    const adaptHtml = Object.entries(adapt).map(([k,v]) => `
+      <div class="adapt-card adapt-${k}">
+        <span class="adapt-label">${{vegan:'🌱 Vegan',lattosio:'🥛 Lattosio',celiaci:'🌾 Celiaci',halal:'☪ Halal',kosher:'✡ Kosher'}[k]||k}</span>
+        <p class="adapt-text">${v}</p>
+      </div>`).join('');
+    const s = document.createElement('div');
+    s.className = 'scheda';
+    s.style.animationDelay = `${i*.07}s`;
+    s.innerHTML = `
+      <div class="scheda-header">
+        <div class="scheda-num">${r.numero}</div>
+        <div class="scheda-title-block">
+          <div class="scheda-title">${r.title}</div>
+          ${r.chef?`<div class="scheda-chef">Chef / Autore: ${r.chef}</div>`:''}
+        </div>
+        <div class="tags" style="margin:0;flex-shrink:0">
+          ${r.tags.map(([l,c])=>`<span class="tag ${c}">${l}</span>`).join('')}
+        </div>
+      </div>
+      <div class="scheda-body">
+        <div class="scheda-cell full">
+          <div class="scheda-cell-label"><span class="lbl-icon">🛒</span> Ingredienti (${r.porzioni})</div>
+          <div class="scheda-cell-content"><div class="ing-chips">${chipsHtml}</div>
+          <p style="margin-top:.6rem;font-size:.88rem;opacity:.7">${r.ingredients.join(' · ')}</p></div>
+        </div>
+        <div class="scheda-cell allergeni">
+          <div class="scheda-cell-label"><span class="lbl-icon">⚠️</span> Allergeni</div>
+          <div class="scheda-cell-content">${r.allergeni}</div>
+        </div>
+        <div class="scheda-cell stagione">
+          <div class="scheda-cell-label"><span class="lbl-icon">🌿</span> Stagionalità</div>
+          <div class="scheda-cell-content">${r.stagione}</div>
+        </div>
+        <div class="scheda-cell full">
+          <div class="scheda-cell-label"><span class="lbl-icon">👨‍🍳</span> Procedimento</div>
+          <div class="scheda-cell-content">${r.procedimento}</div>
+        </div>
+        <div class="scheda-cell motiv full">
+          <div class="scheda-cell-label"><span class="lbl-icon">🩺</span> Motivazione nutrizionale — Prevenzione obesità &amp; sindrome metabolica</div>
+          <div class="scheda-cell-content">${r.motivazione}</div>
+        </div>
+        <div class="scheda-cell cottura full">
+          <div class="scheda-cell-label" style="color:#5D4037"><span class="lbl-icon">🍳</span> Tecniche di cottura e benefici nutrizionali</div>
+          <div class="scheda-cell-content">${r.cottura}</div>
+        </div>
+        <div class="scheda-cell antitumorale full">
+          <div class="scheda-cell-label" style="color:var(--purple)"><span class="lbl-icon">🔬</span> Prevenzione oncologica</div>
+          <div class="scheda-cell-content">${r.antitumorale}</div>
+        </div>
+        <div class="scheda-cell diabete full">
+          <div class="scheda-cell-label" style="color:var(--coral)"><span class="lbl-icon">💊</span> Prevenzione Diabete T2, Ipertensione &amp; Aterosclerosi</div>
+          <div class="scheda-cell-content">${diabete}</div>
+        </div>
+        <div class="scheda-cell full" style="background:#F8F9FA">
+          <div class="scheda-cell-label"><span class="lbl-icon">🍽</span> Adattamenti per esigenze dietetiche e religiose</div>
+          <div class="adapt-grid">${adaptHtml}</div>
+        </div>
+      </div>
+      <div class="macros-row">
+        <div class="macro"><div class="macro-val">${r.macros.kcal}</div><span class="macro-label">kcal/porz.</span></div>
+        <div class="macro"><div class="macro-val">${r.macros.prot}g</div><span class="macro-label">proteine</span></div>
+        <div class="macro"><div class="macro-val">${r.macros.carb}g</div><span class="macro-label">carboidrati</span></div>
+        <div class="macro"><div class="macro-val">${r.macros.grassi}g</div><span class="macro-label">grassi</span></div>
+      </div>
+    `;
+    grid.appendChild(s);
+  });
+}
+
+/* ── RE-INIT ── */
+renderCards('all');
+renderSchede('all');
+
+</script>
+</body>
+</html>
